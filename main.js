@@ -5,7 +5,7 @@ const renderer = new THREE.WebGLRenderer(),
     mainLight = new THREE.PointLight( 0xffffff, 1.0, 500, 2 ),
     ambientLight = new THREE.AmbientLight( 0x404040 ),
     geometry = new THREE.OctahedronGeometry(1, 3),
-    texture = new THREE.TextureLoader().load('/textures/checker/redwhite.jpg'),
+    texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
     material = new THREE.MeshStandardMaterial({
         'map':       texture,
         'roughness': 0.8
@@ -40,8 +40,6 @@ resizeCanvas();
 
 (function animate() {
     renderer.render(scene, camera);
-    translate.x++;
-    body.translate(translate);
     requestAnimationFrame(animate);
 })();
 
