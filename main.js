@@ -3,8 +3,8 @@ const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera( 45, 1, 1, 10000 ),
     mainLight = new THREE.PointLight( 0xffffff, 1.0, 500, 2 ),
-    ambientLight = new THREE.AmbientLight( 0x404040 ),
-    geometry = new THREE.OctahedronGeometry(1, 3),
+    ambientLight = new THREE.AmbientLight( 0xF0F0F0 ),
+    geometry = new THREE.OctahedronGeometry(1, 0),
     texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
     material = new THREE.MeshStandardMaterial({
         'map':       texture,
@@ -38,9 +38,14 @@ scene.add(body);
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+let frameTime = 1,
+    frameEndTime = performance.now();
 (function animate() {
+    body.rotation.z += 10*((frameEndTime-frameTime)/1000);
+    frameTime = performance.now();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
+    frameEndTime = performance.now();
 })();
 
 function resizeCanvas() {
