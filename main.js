@@ -1,16 +1,18 @@
 /*global THREE*/
+import {world, body} from './gamePhysics.js';
+
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera( 45, 1, 1, 10000 ),
     mainLight = new THREE.PointLight( 0xffffff, 1.0, 500, 2 ),
     ambientLight = new THREE.AmbientLight( 0xF0F0F0 ),
-    geometry = new THREE.OctahedronGeometry(1, 0),
+    geometry = new THREE.OctahedronGeometry(1, 1),
     texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
     material = new THREE.MeshStandardMaterial({
         'map':       texture,
         'roughness': 0.8
     }),
-    body = new THREE.Mesh( geometry, material ),
+    ball = new THREE.Mesh( geometry, material ),
     container = document.body.querySelector('#main-container');
 
 let translate = {x: 0, y: 0},
@@ -31,21 +33,31 @@ scene.add(ambientLight);
 texture.wrapS = THREE.RepeatWrapping;
 texture.wrapT = THREE.RepeatWrapping;
 texture.repeat.set( 1, 1 );
-body.castShadow = true;
-body.receiveShadow = true;
-scene.add(body);
+ball.castShadow = true;
+ball.receiveShadow = true;
+scene.add(ball);
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-let frameTime = 1,
-    frameEndTime = performance.now();
+let timeStep = 1.0/60,
+    velocityIterations = 6,
+    positionIterations = 2;
+
 (function animate() {
-    body.rotation.z += 10*((frameEndTime-frameTime)/1000);
-    frameTime = performance.now();
+    world.Step(timeStep, velocityIterations, positionIterations);
+
+    let pos = body.GetPosition(),
+        angle = body.GetAngle();
+
+    ball.rotation.x = angle.x;
+    ball.rotation.y = angle.y;
+    ball.rotation.z = 0;
+    ball.position.x = pos.x;
+    ball.position.y = pos.y;
+    ball.position.z = 0;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
-    frameEndTime = performance.now();
 })();
 
 function resizeCanvas() {
