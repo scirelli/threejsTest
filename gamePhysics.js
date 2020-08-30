@@ -10,7 +10,7 @@ const worldAABB = new Box2D.Collision.b2AABB(),
 worldAABB.lowerBound.Set(-1000, -1000);
 worldAABB.upperBound.Set(1000, 1000);
 
-let doSleep = true;
+let doSleep = false;
 const world = new Box2D.Dynamics.b2World(worldAABB, gravity, doSleep);
 
 //####### Shape ##########
@@ -26,9 +26,8 @@ fixtureDef.restitution = 1.0;
 
 //####### Body ##########
 let circleBdDef = new Box2D.Dynamics.b2BodyDef();
-circleBdDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
-circleBdDef.position.Set(0, 5);
-
+circleBdDef.position.Set(0, 0);
+//circleBdDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
 var circleBody = world.CreateBody(circleBdDef);
 circleBody.SetPosition(new Box2D.Common.Math.b2Vec2(0.0, 5.0));
 circleBody.CreateFixture(fixtureDef);

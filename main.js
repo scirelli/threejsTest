@@ -1,5 +1,5 @@
 /*global THREE*/
-import {world, body} from './gamePhysics.js';
+//import {world, body} from './gamePhysics.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
@@ -40,25 +40,53 @@ scene.add(ball);
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-let timeStep = 1.0/60,
-    velocityIterations = 6,
-    positionIterations = 2;
 
-(function animate() {
-    world.Step(timeStep, velocityIterations, positionIterations);
+var world = new Box2D.Dynamics.b2World(new Box2D.Common.Math.b2Vec2(0, 10), true);
 
-    let pos = body.GetPosition(),
-        angle = body.GetAngle();
+// make a circle
+var shape = new Box2D.Collision.Shapes.b2CircleShape(3);
+var fixtureDef = new Box2D.Dynamics.b2FixtureDef();
+fixtureDef.shape = shape;
+fixtureDef.density = 1;
+fixtureDef.friction = 0.5;
+fixtureDef.restitution = 0.5;
+var bodyDef = new Box2D.Dynamics.b2BodyDef();
+bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
+var body = world.CreateBody(bodyDef);
+body.CreateFixture(fixtureDef);
 
-    ball.rotation.x = angle;
-    ball.rotation.y = angle;
-    // ball.rotation.z = 0;
-    ball.position.x = pos.x;
-    ball.position.y = pos.y;
-    //ball.position.z = 0;
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-})();
+// make a floor, slightly lopsided so stuff slides off
+var floorshape = new Box2D.Collision.Shapes.b2PolygonShape();
+floorshape.SetAsOrientedBox(
+  100,
+  1,
+  {x:0,y:0},
+  0
+);
+var floorfixtureDef = new Box2D.Dynamics.b2FixtureDef();
+floorfixtureDef.shape = floorshape;
+floorfixtureDef.density = 1;
+floorfixtureDef.friction = 0.5;
+floorfixtureDef.restitution = 0.5;
+var floorbodyDef = new Box2D.Dynamics.b2BodyDef();
+floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
+floorbodyDef.position = {x:0,y:10};
+floorbodyDef.angle = 0.1;
+var floorbody = world.CreateBody(floorbodyDef);
+floorbody.CreateFixture(floorfixtureDef);
+
+var timeStep = 1.0/60;
+var iteration = 1;
+
+function update() {
+  world.Step(timeStep, iteration);
+  var pb = body.GetPosition();
+  var pf = floorbody.GetPosition()
+  console.log(pb.x,pb.y,pf.x,pf.y);
+  requestAnimationFrame(update);
+}
+update();
+
 
 function resizeCanvas() {
     renderer.setSize(container.offsetWidth, container.offsetHeight);
