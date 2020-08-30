@@ -1,4 +1,3 @@
-/*eslint-disable no-unused-vars, no-constant-condition,eqeqeq,no-inner-declarations,no-empty,no-unreachable*/
 /*
 * Copyright (c) 2006-2007 Erin Catto http://www.gphysics.com
 *
@@ -10866,7 +10865,7 @@ Box2D.postDefs = [];
         s.stroke();
     };
 })(); //post-definitions
-for (let i = 0; i < Box2D.postDefs.length; ++i) Box2D.postDefs[i]();
+var i;
+for (i = 0; i < Box2D.postDefs.length; ++i) Box2D.postDefs[i]();
 delete Box2D.postDefs;
-
 export {Box2D};

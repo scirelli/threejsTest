@@ -50,12 +50,12 @@ let timeStep = 1.0/60,
     let pos = body.GetPosition(),
         angle = body.GetAngle();
 
-    ball.rotation.x = angle.x;
-    ball.rotation.y = angle.y;
-    ball.rotation.z = 0;
+    ball.rotation.x = angle;
+    ball.rotation.y = angle;
+    // ball.rotation.z = 0;
     ball.position.x = pos.x;
     ball.position.y = pos.y;
-    ball.position.z = 0;
+    //ball.position.z = 0;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 })();
