@@ -11,7 +11,7 @@ worldAABB.lowerBound.Set(-1000, -1000);
 worldAABB.upperBound.Set(1000, 1000);
 
 let doSleep = true;
-const world = new Box2D.Dynamics.b2World(worldAABB, gravity, doSleep);
+const world = new Box2D.Dynamics.b2World(gravity, doSleep);
 
 //####### Shape ##########
 let circleShape = new Box2D.Collision.Shapes.b2CircleShape();
