@@ -29,7 +29,7 @@ let circleBdDef = new Box2D.Dynamics.b2BodyDef();
 circleBdDef.position.Set(0, 0);
 //circleBdDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
 var circleBody = world.CreateBody(circleBdDef);
-circleBody.SetPosition(new Box2D.Common.Math.b2Vec2(0.0, 0.0));
+circleBody.SetPosition(new Box2D.Common.Math.b2Vec2(0.0, 5.0));
 circleBody.CreateFixture(fixtureDef);
 
 let body = circleBody;
