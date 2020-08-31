@@ -26,7 +26,7 @@ let circleShape = new b2CircleShape(1),
 circleFixtureDef.shape = circleShape;
 circleFixtureDef.density = 1.0;
 circleFixtureDef.friction = 0.5;
-circleFixtureDef.restitution = 0.5;
+circleFixtureDef.restitution = 1.0;
 
 circleBdDef.type = b2Body.b2_dynamicBody;
 let ballbody = world.CreateBody(circleBdDef);
@@ -41,7 +41,7 @@ let circle2Shape = new b2CircleShape(1),
 circle2FixtureDef.shape = circle2Shape;
 circle2FixtureDef.density = 1.0;
 circle2FixtureDef.friction = 0.5;
-circle2FixtureDef.restitution = 0.5;
+circle2FixtureDef.restitution = 1.0;
 
 circle2BdDef.type = b2Body.b2_dynamicBody;
 circle2BdDef.position = {x: 0, y: -2.5};

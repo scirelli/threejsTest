@@ -20,7 +20,7 @@ const renderer = new THREE.WebGLRenderer(),
     cubeMaterial = new THREE.MeshBasicMaterial({color: 0x00FFFF}),
     cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-cube.position.y = -floorbody.GetPosition().y;
+cube.position.y = -floorbody.GetPosition().y + 0.5;
 scene.add(cube);
 
 let translate = {x: 0, y: 0},
