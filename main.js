@@ -66,7 +66,7 @@ let timeStep = 1.0/60,
     gball.rotation.x = angle;
     gball.rotation.y = angle;
     gball.position.x = pos.x;
-    gball.position.y = 0-pos.y;
+    gball.position.y = -pos.y;
 
     pos = ball2body.GetPosition(),
     angle = ball2body.GetAngle();
@@ -74,7 +74,7 @@ let timeStep = 1.0/60,
     gball2.rotation.x = angle;
     gball2.rotation.y = angle;
     gball2.position.x = pos.x;
-    gball2.position.y = 0-pos.y;
+    gball2.position.y = -pos.y;
 
     console.log(pos.x, pos.y, pf.x, pf.y);
 
