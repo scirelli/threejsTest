@@ -19,7 +19,7 @@ const renderer = new THREE.WebGLRenderer(),
     cubeMaterial = new THREE.MeshBasicMaterial({color: 0x00FFFF}),
     cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-cube.position.y = 0 - floorbody.GetPosition().y;
+cube.position.y = -7.5;
 scene.add(cube);
 
 let translate = {x: 0, y: 0},
@@ -49,22 +49,21 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 let timeStep = 1.0/60,
-    velocityIterations = 6,
-    positionIterations = 2;
+    iteration = 1;
 
 (function animate() {
-    world.Step(timeStep, velocityIterations, positionIterations);
+    world.Step(timeStep, iteration);
 
     let pos = ballbody.GetPosition(),
-        angle = ballbody.GetAngle();
+        angle = ballbody.GetAngle(),
+        pf = floorbody.GetPosition();
 
     gball.rotation.x = angle;
     gball.rotation.y = angle;
-    // gball.rotation.z = 0;
     gball.position.x = pos.x;
-    gball.position.y = pos.y;
-    console.log(`(${pos.x}, ${pos.y})`);
-    //gball.position.z = 0;
+    gball.position.y = 0-pos.y;
+
+    console.log(pos.x, pos.y, pf.x, pf.y);
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 })();

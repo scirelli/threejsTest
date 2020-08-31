@@ -13,28 +13,24 @@ import {
     b2PolygonShape
 } from './Box2D.js';
 
-const gravity = new b2Vec2(0.0, 1.0),
+const gravity = new b2Vec2(0.0, 10.0),
     DO_SLEEP = true,
     world = new b2World(gravity, DO_SLEEP),
-    circleShape = new b2CircleShape(),
+    circleShape = new b2CircleShape(3),
     fixtureDef = new b2FixtureDef(),
     circleBdDef = new b2BodyDef();
 
-//####### Shape ##########
-circleShape.SetRadius(20);
 
 //####### Fixture ############
 fixtureDef.shape = circleShape;
 fixtureDef.density = 1.0;
-fixtureDef.friction = 0.3;
-fixtureDef.restitution = 1.0;
+fixtureDef.friction = 0.5;
+fixtureDef.restitution = 0.5;
 
 //####### Body ##########
 circleBdDef.type = b2Body.b2_dynamicBody;
-circleBdDef.position.Set(0, 5);
 
 let ballbody = world.CreateBody(circleBdDef);
-ballbody.SetPosition(new b2Vec2(0.0, 5.0));
 ballbody.CreateFixture(fixtureDef);
 
 let floorshape = new b2PolygonShape(),
