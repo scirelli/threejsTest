@@ -41,14 +41,14 @@ let floorshape = new b2PolygonShape(),
     floorfixtureDef = new b2FixtureDef(),
     floorbodyDef = new b2BodyDef();
 
-floorshape.SetAsOrientedBox(100, 0, {x: 0, y: 0}, 0);
+floorshape.SetAsOrientedBox(10, 1, {x: 0, y: 0}, 0);
 floorfixtureDef.shape = floorshape;
 floorfixtureDef.density = 1;
 floorfixtureDef.friction = 0.5;
 floorfixtureDef.restitution = 0.5;
 floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
 floorbodyDef.position = {x: 0, y: 10};
-floorbodyDef.angle = 0.1;
+floorbodyDef.angle = 0.0;
 let floorbody = world.CreateBody(floorbodyDef);
 floorbody.CreateFixture(floorfixtureDef);
 export {world, ballbody, floorbody};
