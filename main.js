@@ -1,5 +1,5 @@
 /*global THREE*/
-import {world, body} from './gamePhysics.js';
+import {world, ballbody, floorbody} from './gamePhysics.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
@@ -12,8 +12,15 @@ const renderer = new THREE.WebGLRenderer(),
         'map':       texture,
         'roughness': 0.8
     }),
-    ball = new THREE.Mesh( geometry, material ),
-    container = document.body.querySelector('#main-container');
+    gball = new THREE.Mesh(geometry, material),
+    container = document.body.querySelector('#main-container'),
+
+    cubeGeometry = new THREE.BoxGeometry(10, 1, 1),
+    cubeMaterial = new THREE.MeshBasicMaterial({color: 0x00FFFF}),
+    cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+cube.position.y = 0 - floorbody.GetPosition().y;
+scene.add(cube);
 
 let translate = {x: 0, y: 0},
     scale = 25,
@@ -30,12 +37,13 @@ mainLight.shadow.mapSize.height = 512;
 scene.add(mainLight);
 
 scene.add(ambientLight);
+
 texture.wrapS = THREE.RepeatWrapping;
 texture.wrapT = THREE.RepeatWrapping;
-texture.repeat.set( 1, 1 );
-ball.castShadow = true;
-ball.receiveShadow = true;
-scene.add(ball);
+texture.repeat.set(1, 1);
+gball.castShadow = true;
+gball.receiveShadow = true;
+scene.add(gball);
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -47,15 +55,15 @@ let timeStep = 1.0/60,
 (function animate() {
     world.Step(timeStep, velocityIterations, positionIterations);
 
-    let pos = body.GetPosition(),
-        angle = body.GetAngle();
+    let pos = ballbody.GetPosition(),
+        angle = ballbody.GetAngle();
 
-    ball.rotation.x = angle;
-    ball.rotation.y = angle;
-    // ball.rotation.z = 0;
-    ball.position.x = pos.x;
-    ball.position.y = pos.y;
-    //ball.position.z = 0;
+    gball.rotation.x = angle;
+    gball.rotation.y = angle;
+    // gball.rotation.z = 0;
+    gball.position.x = pos.x;
+    gball.position.y = 0-pos.y;
+    //gball.position.z = 0;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 })();

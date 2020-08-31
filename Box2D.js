@@ -1,3 +1,4 @@
+/*eslint-disable no-unused-vars, eqeqeq, no-constant-condition, no-inner-declarations, no-empty, no-unreachable*/
 /*
 * Copyright (c) 2006-2007 Erin Catto http://www.gphysics.com
 *
@@ -10868,4 +10869,38 @@ Box2D.postDefs = [];
 var i;
 for (i = 0; i < Box2D.postDefs.length; ++i) Box2D.postDefs[i]();
 delete Box2D.postDefs;
-export {Box2D};
+
+const Collision =        Box2D.Collision,
+    Shapes =             Box2D.Collision.Shapes,
+    b2CircleShape =      Box2D.Collision.Shapes.b2CircleShape,
+    b2PolygonShape =     Box2D.Collision.Shapes.b2PolygonShape,
+    Common =             Box2D.Common,
+    b2Vec2 =             Box2D.Common.Math.b2Vec2,
+    Dynamics =           Box2D.Dynamics,
+    Contacts =           Box2D.Dynamics.Contacts,
+    Controllers=         Box2D.Dynamics.Controllers,
+    b2World=             Box2D.Dynamics.b2World,
+    b2FixtureDef =       Box2D.Dynamics.b2FixtureDef,
+    b2Body =             Box2D.Dynamics.b2Body,
+    b2BodyDef =          Box2D.Dynamics.b2BodyDef,
+    Joints =             Box2D.Dynamics.Joints,
+    b2RevoluteJointDef = Box2D.Dynamics.Joints.b2RevoluteJointDef;
+
+export {
+    Box2D,
+    Collision,
+    Shapes,
+    b2CircleShape,
+    b2PolygonShape,
+    Common,
+    b2Vec2,
+    Dynamics,
+    Contacts,
+    Controllers,
+    b2World,
+    b2FixtureDef,
+    b2Body,
+    b2BodyDef,
+    Joints,
+    b2RevoluteJointDef
+};
