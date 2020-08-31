@@ -62,7 +62,8 @@ let timeStep = 1.0/60,
     gball.rotation.y = angle;
     // gball.rotation.z = 0;
     gball.position.x = pos.x;
-    gball.position.y = 0-pos.y;
+    gball.position.y = pos.y;
+    console.log(`(${pos.x}, ${pos.y})`);
     //gball.position.z = 0;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
