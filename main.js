@@ -74,6 +74,39 @@ canvas.addEventListener('click', (evt)=> {
 
     balls.push(createBouncyBall(mousePosition.x, mousePosition.y));
 });
+window.addEventListener('keydown', function(e) {
+    /*
+    switch(e.keyCode) {
+        case 37:
+            console.log('left');
+            break;
+        case 38:
+            console.log('up');
+            break;
+        case 39:
+            console.log('right');
+            break;
+        case 40:
+            console.log('down');
+            break;
+    }
+    */
+    switch (e.key) {
+        case 'ArrowLeft':
+            lightBall.position.x = mainLight.position.x -= 0.1;
+            break;
+        case 'ArrowRight':
+            lightBall.position.x = mainLight.position.x += 0.1;
+            break;
+        case 'ArrowUp':
+            lightBall.position.y = mainLight.position.y += 0.1;
+            break;
+        case 'ArrowDown':
+            lightBall.position.y = mainLight.position.y -= 0.1;
+            break;
+    }
+});
+
 resizeCanvas();
 
 (function animate() {
