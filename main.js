@@ -127,24 +127,27 @@ resizeCanvas();
 
     box1.position.x = pos.x;
     box1.position.y = -pos.y;
-    box1.rotation.x = angle;
-    box1.rotation.y = angle;
+    // box1.rotation.x = angle;
+    // box1.rotation.y = angle;
+    box1.rotation.z = angle;
 
     pos = box2Body.GetPosition();
     angle = box2Body.GetAngle();
 
     box2.position.x = pos.x;
     box2.position.y = -pos.y;
-    box2.rotation.x = angle;
-    box2.rotation.y = angle;
+    // box2.rotation.x = angle;
+    // box2.rotation.y = angle;
+    box2.rotation.z = angle;
 
     balls.forEach((b)=> {
         let pos = b.physical.GetPosition(),
             angle = b.physical.GetAngle();
         b.mesh.position.x = pos.x;
         b.mesh.position.y = -pos.y;
-        b.mesh.rotation.x = angle;
-        b.mesh.rotation.y = angle;
+        // b.mesh.rotation.x = angle;
+        // b.mesh.rotation.y = angle;
+        b.mesh.rotation.z = angle;
     });
 
     // console.log(`box2(${box2.position.x},${box2.position.y})`);
