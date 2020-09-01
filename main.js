@@ -79,7 +79,7 @@ canvas.addEventListener('click', (evt)=> {
         obj = intersections[0];
 
     if(obj)
-        obj.object.physics.ApplyImpulse({x: -obj.point.x/2, y: -100}, {x: obj.point.x/2, y: obj.point.y/2});
+        obj.object.physics.ApplyImpulse({x: (obj.point.x/2)*10, y: (obj.point.x/2)*10}, {x: 0, y: 0});
     else
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
 });
@@ -121,21 +121,30 @@ resizeCanvas();
 (function animate() {
     world.Step(timeStep, iteration);
 
-    let pos = box1Body.GetPosition();
+    let pos = box1Body.GetPosition(),
+        angle = box1Body.GetAngle();
     //floorPos = floorbody.GetPosition();
 
     box1.position.x = pos.x;
     box1.position.y = -pos.y;
+    box1.rotation.x = angle;
+    box1.rotation.y = angle;
 
     pos = box2Body.GetPosition();
+    angle = box2Body.GetAngle();
 
     box2.position.x = pos.x;
     box2.position.y = -pos.y;
+    box2.rotation.x = angle;
+    box2.rotation.y = angle;
 
     balls.forEach((b)=> {
-        let pos = b.physical.GetPosition();
+        let pos = b.physical.GetPosition(),
+            angle = b.physical.GetAngle();
         b.mesh.position.x = pos.x;
         b.mesh.position.y = -pos.y;
+        b.mesh.rotation.x = angle;
+        b.mesh.rotation.y = angle;
     });
 
     // console.log(`box2(${box2.position.x},${box2.position.y})`);
