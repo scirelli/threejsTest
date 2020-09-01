@@ -79,7 +79,7 @@ canvas.addEventListener('click', (evt)=> {
         obj = intersections[0];
 
     if(obj)
-        obj.object.physics.ApplyImpulse({x: (obj.point.x/2)*10, y: (obj.point.x/2)*10}, {x: 0, y: 0});
+        obj.object.physics.ApplyImpulse({x: ((obj.point.x/obj.point.z)/2)*10, y: ((obj.point.y/obj.point.z)/2)*10}, {x: 0, y: 0});
     else
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
 });
