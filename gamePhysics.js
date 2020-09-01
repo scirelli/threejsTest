@@ -6,10 +6,8 @@ import {
     Box2D,
     b2Vec2,
     b2World,
-    b2CircleShape,
     b2FixtureDef,
     b2BodyDef,
-    b2Body,
     b2PolygonShape
 } from './Box2D.js';
 
@@ -18,51 +16,49 @@ const gravity = new b2Vec2(0.0, 10.0),
     world = new b2World(gravity, DO_SLEEP);
 
 
-
-let circleShape = new b2CircleShape(1),
-    circleFixtureDef = new b2FixtureDef(),
-    circleBdDef = new b2BodyDef();
-
-circleFixtureDef.shape = circleShape;
-circleFixtureDef.density = 1.0;
-circleFixtureDef.friction = 0.5;
-circleFixtureDef.restitution = 1.0;
-
-circleBdDef.type = b2Body.b2_dynamicBody;
-let ballbody = world.CreateBody(circleBdDef);
-ballbody.CreateFixture(circleFixtureDef);
-
-
-
-let circle2Shape = new b2CircleShape(1),
-    circle2FixtureDef = new b2FixtureDef(),
-    circle2BdDef = new b2BodyDef();
-
-circle2FixtureDef.shape = circle2Shape;
-circle2FixtureDef.density = 1.0;
-circle2FixtureDef.friction = 0.5;
-circle2FixtureDef.restitution = 1.0;
-
-circle2BdDef.type = b2Body.b2_dynamicBody;
-circle2BdDef.position = {x: 0, y: -2.5};
-let ball2body = world.CreateBody(circle2BdDef);
-ball2body.CreateFixture(circle2FixtureDef);
-
-
-
 let floorshape = new b2PolygonShape(),
     floorfixtureDef = new b2FixtureDef(),
     floorbodyDef = new b2BodyDef();
 
-floorshape.SetAsOrientedBox(10, 1, {x: 0, y: 0}, 0);
+floorshape.SetAsOrientedBox(6, 1, {x: 0, y: 0}, 0);
 floorfixtureDef.shape = floorshape;
 floorfixtureDef.density = 1;
 floorfixtureDef.friction = 0.5;
 floorfixtureDef.restitution = 0.5;
 floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
-floorbodyDef.position = {x: 0, y: 10};
+floorbodyDef.position = {x: 0, y: 15};
 floorbodyDef.angle = 0.0;
 let floorbody = world.CreateBody(floorbodyDef);
 floorbody.CreateFixture(floorfixtureDef);
 
-export {world, ballbody, floorbody, ball2body};
+let box1Shape = new b2PolygonShape(),
+    box1FixtureDef = new b2FixtureDef(),
+    box1BodyDef = new b2BodyDef();
+
+box1Shape.SetAsOrientedBox(4, 1, {x: 0, y: 0}, 0);
+box1FixtureDef.shape = box1Shape;
+box1FixtureDef.density = 1;
+box1FixtureDef.friction = 0.5;
+box1FixtureDef.restitution = 0.5;
+box1BodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
+box1BodyDef.position = {x: 0, y: 5};
+box1BodyDef.angle = 0.0;
+let box1Body = world.CreateBody(box1BodyDef);
+box1Body.CreateFixture(box1FixtureDef);
+
+let box2Shape = new b2PolygonShape(),
+    box2FixtureDef = new b2FixtureDef(),
+    box2BodyDef = new b2BodyDef();
+
+box2Shape.SetAsOrientedBox(2, 1, {x: 0, y: 0}, 0);
+box2FixtureDef.shape = box2Shape;
+box2FixtureDef.density = 1;
+box2FixtureDef.friction = 0.5;
+box2FixtureDef.restitution = 0.5;
+box2BodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
+box2BodyDef.position = {x: 0, y: 0};
+box2BodyDef.angle = 0.0;
+let box2Body = world.CreateBody(box2BodyDef);
+box2Body.CreateFixture(box2FixtureDef);
+
+export {world, floorbody, box1Body, box2Body};

@@ -1,82 +1,104 @@
 /*global THREE*/
-import {world, ballbody, floorbody, ball2body} from './gamePhysics.js';
+import {world, floorbody, box1Body, box2Body} from './gamePhysics.js';
+import {
+    b2FixtureDef,
+    b2BodyDef,
+    b2CircleShape,
+    b2Body
+} from './Box2D.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
-    camera = new THREE.PerspectiveCamera( 45, 1, 1, 10000 ),
-    mainLight = new THREE.PointLight( 0xffffff, 1.0, 500, 2 ),
-    ambientLight = new THREE.AmbientLight( 0xF0F0F0 ),
-    geometry = new THREE.OctahedronGeometry(1, 2),
+    camera = new THREE.PerspectiveCamera(50, 1, 1, 10000),
+    mainLight = new THREE.PointLight(0XFFFFFF, 1.0, 500, 2),
+    ambientLight = new THREE.AmbientLight(0xF0F0F0, 0.5),
+
+    container = document.body.querySelector('#main-container'),
+
     texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
     material = new THREE.MeshStandardMaterial({
         'map':       texture,
         'roughness': 0.8
     }),
-    gball = new THREE.Mesh(geometry, material),
-    gball2 = new THREE.Mesh(geometry, material),
-    container = document.body.querySelector('#main-container'),
 
-    cubeGeometry = new THREE.BoxGeometry(10, 1, 1),
-    cubeMaterial = new THREE.MeshBasicMaterial({color: 0x00FFFF}),
-    cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-
-cube.position.y = -floorbody.GetPosition().y + 0.5;
-scene.add(cube);
+    floor = new THREE.Mesh(new THREE.BoxGeometry(12, 2, 6), material),
+    box1  = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 4), material),
+    box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), material),
+    lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF}));
 
 let translate = {x: 0, y: 0},
     scale = 25,
-    cameraMaximumDimension = 1;
+    cameraMaximumDimension = 1,
+    timeStep = 1.0/60,
+    iteration = 1,
+    canvas,
+    balls = [];
+
+floor.position.y = -floorbody.GetPosition().y;
+floor.castShadow = true;
+floor.receiveShadow = true;
+scene.add(floor);
+box1.position.y = -box1Body.GetPosition().y;
+box1.castShadow = true;
+box1.receiveShadow = true;
+scene.add(box1);
+box2.position.y = -box2Body.GetPosition().y;
+box2.castShadow = true;
+box2.receiveShadow = true;
+scene.add(box2);
+scene.add(lightBall);
+
 
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 container.appendChild(renderer.domElement);
+canvas = document.body.querySelector('canvas');
 
+lightBall.position.set(5, 5, 0);
+mainLight.position.set(5, 5, 0);
 mainLight.castShadow = true;
 mainLight.shadow.mapSize.width = 512;
 mainLight.shadow.mapSize.height = 512;
 scene.add(mainLight);
-
 scene.add(ambientLight);
 
-texture.wrapS = THREE.RepeatWrapping;
-texture.wrapT = THREE.RepeatWrapping;
-texture.repeat.set(1, 1);
-gball.castShadow = true;
-gball.receiveShadow = true;
-scene.add(gball);
-
-gball2.castShadow = true;
-gball2.receiveShadow = true;
-scene.add(gball2);
-
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+canvas.addEventListener('click', (evt)=> {
+    evt.preventDefault();
 
-let timeStep = 1.0/60,
-    iteration = 1;
+    let mousePosition = new THREE.Vector2();
+
+    mousePosition.x = ((evt.clientX - canvas.offsetLeft) / canvas.width) * 2 - 1;
+    mousePosition.y = -((evt.clientY - canvas.offsetTop) / canvas.height) * 2 + 1;
+
+    balls.push(createBouncyBall(mousePosition.x, mousePosition.y));
+});
+resizeCanvas();
 
 (function animate() {
     world.Step(timeStep, iteration);
 
-    let pos = ballbody.GetPosition(),
-        angle = ballbody.GetAngle(),
-        pf = floorbody.GetPosition();
+    let pos = box1Body.GetPosition(),
+        floorPos = floorbody.GetPosition();
 
-    gball.rotation.x = angle;
-    gball.rotation.y = angle;
-    gball.position.x = pos.x;
-    gball.position.y = -pos.y;
+    box1.position.x = pos.x;
+    box1.position.y = -pos.y;
 
-    pos = ball2body.GetPosition(),
-    angle = ball2body.GetAngle();
+    pos = box2Body.GetPosition();
 
-    gball2.rotation.x = angle;
-    gball2.rotation.y = angle;
-    gball2.position.x = pos.x;
-    gball2.position.y = -pos.y;
+    box2.position.x = pos.x;
+    box2.position.y = -pos.y;
 
-    console.log(pos.x, pos.y, pf.x, pf.y);
+    balls.forEach((b)=> {
+        let pos = b.physical.GetPosition();
+        b.mesh.position.x = pos.x;
+        b.mesh.position.y = -pos.y;
+    });
+
+    // console.log(`box2(${box2.position.x},${box2.position.y})`);
+    // console.log(`box1(${box1.position.x},${box1.position.y})`);
+    // console.log(`floor(${floorPos.x},${-floorPos.y})`);
 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
@@ -101,3 +123,48 @@ function resizeCanvas() {
 function updateCameraPosition() {
     camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
 }
+
+function createBouncyBall(x=0, y=0) {
+    return {
+        mesh:     createBallMesh(x, y),
+        physical: createBallPhysics(x, y)
+    };
+}
+
+function createBallMesh(x=0, y=0) {
+    let geometry = new THREE.OctahedronGeometry(1, 2),
+        texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
+        material = new THREE.MeshStandardMaterial({
+            'map':       texture,
+            'roughness': 0.8
+        }),
+        ball = new THREE.Mesh(geometry, material);
+
+    ball.castShadow = true;
+    ball.receiveShadow = true;
+    ball.position.set(x, y, 0);
+    scene.add(ball);
+    return ball;
+}
+
+function createBallPhysics(x=0, y=0) {
+    let circleShape = new b2CircleShape(1),
+        circleFixtureDef = new b2FixtureDef(),
+        circleBdDef = new b2BodyDef();
+
+    circleFixtureDef.shape = circleShape;
+    circleFixtureDef.density = 1.0;
+    circleFixtureDef.friction = Math.randRange(0.5, 1);
+    circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
+
+    circleBdDef.type = b2Body.b2_dynamicBody;
+    circleBdDef.position = {x: x, y: y};
+    let ballbody = world.CreateBody(circleBdDef);
+    ballbody.CreateFixture(circleFixtureDef);
+
+    return ballbody;
+}
+
+Math.randRange = function(min, max) {
+    return (Math.random() * (max - min)) + min;
+};
