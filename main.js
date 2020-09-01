@@ -24,7 +24,8 @@ const renderer = new THREE.WebGLRenderer(),
     floor = new THREE.Mesh(new THREE.BoxGeometry(12, 2, 6), material),
     box1  = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 4), material),
     box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), material),
-    lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF}));
+    lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF})),
+    rayCaster = new THREE.Raycaster();
 
 let translate = {x: 0, y: 0},
     scale = 25,
@@ -39,12 +40,14 @@ floor.castShadow = true;
 floor.receiveShadow = true;
 scene.add(floor);
 box1.position.y = -box1Body.GetPosition().y;
+box1.physics = box1Body;
 box1.castShadow = true;
 box1.receiveShadow = true;
 scene.add(box1);
 box2.position.y = -box2Body.GetPosition().y;
 box2.castShadow = true;
 box2.receiveShadow = true;
+box2.physics = box2Body;
 scene.add(box2);
 scene.add(lightBall);
 
@@ -71,8 +74,14 @@ canvas.addEventListener('click', (evt)=> {
 
     mousePosition.x = ((evt.clientX - canvas.offsetLeft) / canvas.width) * 2 - 1;
     mousePosition.y = -((evt.clientY - canvas.offsetTop) / canvas.height) * 2 + 1;
+    rayCaster.setFromCamera(mousePosition, camera);
+    let intersections = rayCaster.intersectObjects(scene.children, true),
+        obj = intersections[0];
 
-    balls.push(createBouncyBall(mousePosition.x, mousePosition.y));
+    if(obj)
+        obj.object.physics.ApplyImpulse({x: -obj.point.x/2, y: -100}, {x: obj.point.x/2, y: obj.point.y/2});
+    else
+        balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
 });
 window.addEventListener('keydown', function(e) {
     /*
@@ -112,8 +121,8 @@ resizeCanvas();
 (function animate() {
     world.Step(timeStep, iteration);
 
-    let pos = box1Body.GetPosition(),
-        floorPos = floorbody.GetPosition();
+    let pos = box1Body.GetPosition();
+    //floorPos = floorbody.GetPosition();
 
     box1.position.x = pos.x;
     box1.position.y = -pos.y;
@@ -158,10 +167,12 @@ function updateCameraPosition() {
 }
 
 function createBouncyBall(x=0, y=0) {
-    return {
+    let rtn = {
         mesh:     createBallMesh(x, y),
         physical: createBallPhysics(x, y)
     };
+    rtn.mesh.physics = rtn.physical;
+    return rtn;
 }
 
 function createBallMesh(x=0, y=0) {
