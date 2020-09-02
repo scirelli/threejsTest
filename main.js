@@ -90,7 +90,7 @@ canvas.addEventListener('click', (evt)=> {
 
         obj.object.physics.ApplyImpulse(
             new b2Vec2(uv.x*-f, uv.y*f),
-            obj.object.physics.GetWorldCenter()
+            new b2Vec2(0, 0)
         );
     }else {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
