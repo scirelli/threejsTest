@@ -4,7 +4,8 @@ import {
     b2FixtureDef,
     b2BodyDef,
     b2CircleShape,
-    b2Body
+    b2Body,
+    b2Vec2
 } from './Box2D.js';
 
 const renderer = new THREE.WebGLRenderer(),
@@ -78,10 +79,22 @@ canvas.addEventListener('click', (evt)=> {
     let intersections = rayCaster.intersectObjects(scene.children, true),
         obj = intersections[0];
 
-    if(obj)
-        obj.object.physics.ApplyImpulse({x: ((obj.point.x/obj.point.z)/2)*-10, y: ((obj.point.y/obj.point.z)/2)*10}, {x: 0, y: 0});
-    else
+    if(obj) {
+        let mag = Math.sqrt(obj.point.x*obj.point.x + obj.point.y*obj.point.y),
+            uv = {x: obj.point.x/mag, y: obj.point.y/mag},
+            o = {
+                x: ((obj.point.x/obj.point.z)/2)*-10,
+                y: ((obj.point.y/obj.point.z)/2)*10
+            },
+            f = 50;
+
+        obj.object.physics.ApplyImpulse(
+            new b2Vec2(uv.x*-f, uv.y*f),
+            obj.object.physics.GetWorldCenter()
+        );
+    }else {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
+    }
 });
 window.addEventListener('keydown', function(e) {
     /*
