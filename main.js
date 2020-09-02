@@ -97,8 +97,21 @@ canvas.addEventListener('click', (evt)=> {
     }
 });
 window.addEventListener('keydown', function(e) {
-    /*
+    let f = 10;
     switch(e.keyCode) {
+        case 87: //w
+            box1.physics.ApplyForce(new b2Vec2(0, f), new b2Vec2(0, 0));
+            break;
+        case 65: //a
+            box1.physics.ApplyForce(new b2Vec2(-f, 0), new b2Vec2(0, 0));
+            break;
+        case 83: //s
+            box1.physics.ApplyForce(new b2Vec2(0, -f), new b2Vec2(0, 0));
+            break;
+        case 68: //d
+            box1.physics.ApplyForce(new b2Vec2(f, 0), new b2Vec2(0, 0));
+            break;
+
         case 37:
             console.log('left');
             break;
@@ -112,7 +125,6 @@ window.addEventListener('keydown', function(e) {
             console.log('down');
             break;
     }
-    */
     switch (e.key) {
         case 'ArrowLeft':
             lightBall.position.x = mainLight.position.x -= 0.1;
@@ -142,7 +154,7 @@ resizeCanvas();
     box1.position.y = -pos.y;
     // box1.rotation.x = angle;
     // box1.rotation.y = angle;
-    box1.rotation.z = angle;
+    box1.rotation.z = -angle;
 
     pos = box2Body.GetPosition();
     angle = box2Body.GetAngle();
@@ -151,7 +163,7 @@ resizeCanvas();
     box2.position.y = -pos.y;
     // box2.rotation.x = angle;
     // box2.rotation.y = angle;
-    box2.rotation.z = angle;
+    box2.rotation.z = -angle;
 
     balls.forEach((b)=> {
         let pos = b.physical.GetPosition(),
@@ -160,7 +172,7 @@ resizeCanvas();
         b.mesh.position.y = -pos.y;
         // b.mesh.rotation.x = angle;
         // b.mesh.rotation.y = angle;
-        b.mesh.rotation.z = angle;
+        b.mesh.rotation.z = -angle;
     });
 
     // console.log(`box2(${box2.position.x},${box2.position.y})`);
