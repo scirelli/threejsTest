@@ -90,26 +90,26 @@ canvas.addEventListener('click', (evt)=> {
 
         obj.object.physics.ApplyImpulse(
             new b2Vec2(uv.x*-f, uv.y*f),
-            new b2Vec2(0, 0)
+            obj.object.physics.GetWorldCenter()
         );
     }else {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
     }
 });
 window.addEventListener('keydown', function(e) {
-    let f = 10;
+    let f = 1000;
     switch(e.keyCode) {
         case 87: //w
-            box1.physics.ApplyForce(new b2Vec2(0, f), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(0, -f), new b2Vec2(0, 0));
             break;
         case 65: //a
-            box1.physics.ApplyForce(new b2Vec2(-f, 0), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(-f, 0), new b2Vec2(0, 0));
             break;
         case 83: //s
-            box1.physics.ApplyForce(new b2Vec2(0, -f), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(0, f), new b2Vec2(0, 0));
             break;
         case 68: //d
-            box1.physics.ApplyForce(new b2Vec2(f, 0), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(f, 0), new b2Vec2(0, 0));
             break;
 
         case 37:
@@ -145,6 +145,7 @@ resizeCanvas();
 
 (function animate() {
     world.Step(timeStep, iteration);
+    world.ClearForces();
 
     let pos = box1Body.GetPosition(),
         angle = box1Body.GetAngle();
