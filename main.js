@@ -100,16 +100,16 @@ window.addEventListener('keydown', function(e) {
     let f = 1000;
     switch(e.keyCode) {
         case 87: //w
-            box2.physics.ApplyForce(new b2Vec2(0, -f), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(0, -f), box2.physics.GetWorldCenter());
             break;
         case 65: //a
-            box2.physics.ApplyForce(new b2Vec2(-f, 0), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(-f, 0), box2.physics.GetWorldCenter());
             break;
         case 83: //s
-            box2.physics.ApplyForce(new b2Vec2(0, f), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(0, f), box2.physics.GetWorldCenter());
             break;
         case 68: //d
-            box2.physics.ApplyForce(new b2Vec2(f, 0), new b2Vec2(0, 0));
+            box2.physics.ApplyForce(new b2Vec2(f, 0), box2.physics.GetWorldCenter());
             break;
 
         case 37:
