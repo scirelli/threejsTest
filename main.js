@@ -7,6 +7,7 @@ import {
     b2Body,
     b2Vec2
 } from './Box2D.js';
+import { KeyPress } from './KeyPress.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
@@ -26,7 +27,8 @@ const renderer = new THREE.WebGLRenderer(),
     box1  = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 4), material),
     box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), material),
     lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF})),
-    rayCaster = new THREE.Raycaster();
+    rayCaster = new THREE.Raycaster(),
+    keyPress = new KeyPress(window);
 
 let translate = {x: 0, y: 0},
     scale = 25,
@@ -96,56 +98,68 @@ canvas.addEventListener('click', (evt)=> {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
     }
 });
-window.addEventListener('keydown', function(e) {
-    let f = 1000;
-    switch(e.keyCode) {
-        case 87: //w
-            box2.physics.ApplyForce(new b2Vec2(0, -f), box2.physics.GetWorldCenter());
-            break;
-        case 65: //a
-            box2.physics.ApplyForce(new b2Vec2(-f, 0), box2.physics.GetWorldCenter());
-            break;
-        case 83: //s
-            box2.physics.ApplyForce(new b2Vec2(0, f), box2.physics.GetWorldCenter());
-            break;
-        case 68: //d
-            box2.physics.ApplyForce(new b2Vec2(f, 0), box2.physics.GetWorldCenter());
-            break;
 
-        case 37:
-            console.log('left');
-            break;
-        case 38:
-            console.log('up');
-            break;
-        case 39:
-            console.log('right');
-            break;
-        case 40:
-            console.log('down');
-            break;
-    }
-    switch (e.key) {
-        case 'ArrowLeft':
+let f = 15;
+keyPress
+    .bindKeyCode(87, (state)=> {//w
+        if(state)
+            box2.physics.ApplyForce(new b2Vec2(0, -f), box2.physics.GetWorldCenter());
+        else
+            box2.physics.m_force.SetZero();
+    })
+    .bindKeyCode(65, (state)=> {//a
+        if(state)
+            box2.physics.ApplyForce(new b2Vec2(-f, 0), box2.physics.GetWorldCenter());
+        else
+            box2.physics.m_force.SetZero();
+    })
+    .bindKeyCode(83, (state)=> {//s
+        if(state)
+            box2.physics.ApplyForce(new b2Vec2(0, f), box2.physics.GetWorldCenter());
+        else
+            box2.physics.m_force.SetZero();
+    })
+    .bindKeyCode(68, (state)=> {//d
+        if(state)
+            box2.physics.ApplyForce(new b2Vec2(f, 0), box2.physics.GetWorldCenter());
+        else
+            box2.physics.m_force.SetZero();
+    })
+    .bindKey('ArrowLeft', (state)=> {
+        if(state)
             lightBall.position.x = mainLight.position.x -= 0.1;
-            break;
-        case 'ArrowRight':
+    })
+    .bindKey('ArrowRight', (state)=> {
+        if(state)
             lightBall.position.x = mainLight.position.x += 0.1;
-            break;
-        case 'ArrowUp':
+    })
+    .bindKey('ArrowUp', (state)=> {
+        if(state)
             lightBall.position.y = mainLight.position.y += 0.1;
-            break;
-        case 'ArrowDown':
+    })
+    .bindKey('ArrowDown', (state)=> {
+        if(state)
             lightBall.position.y = mainLight.position.y -= 0.1;
-            break;
-    }
-});
+    })
+    .bindKey('r', (state)=> {
+        if(state) {
+            box1.physics.SetPosition({x: 0, y: 5});
+            box1.physics.SetAngle(0);
+            box1.physics.SetLinearVelocity({x: 0, y: 0});
+            box1.physics.SetAngularVelocity();
+
+            box2.physics.SetPosition({x: 0, y: 0});
+            box2.physics.SetAngle(0);
+            box2.physics.SetLinearVelocity({x: 0, y: 0});
+            box2.physics.SetAngularVelocity();
+        }
+    });
 
 resizeCanvas();
 
 (function animate() {
     world.Step(timeStep, iteration);
-    world.ClearForces();
+    //world.ClearForces();
 
     let pos = box1Body.GetPosition(),
         angle = box1Body.GetAngle();
