@@ -127,6 +127,26 @@ keyPress
         keyChange(state, box2, new b2Vec2(f, 0));
         console.log('d');
     })
+    .bindKeyChange('e', (state)=> {
+        let pbox = box2.physics,
+            force = 10;
+
+        if(state) {
+            pbox.ApplyTorque(force);
+        }else {
+            pbox.ApplyTorque(-force);
+        }
+    })
+    .bindKeyChange('q', (state)=> {
+        let pbox = box2.physics,
+            force = -10;
+
+        if(state) {
+            pbox.ApplyTorque(force);
+        }else {
+            pbox.ApplyTorque(-force);
+        }
+    })
     .bindKey('ArrowLeft', (state)=> {
         if(state) {
             lightBall.position.x = mainLight.position.x -= 0.1;
@@ -158,7 +178,7 @@ keyPress
             balls.push(ball);
             setTimeout(()=> {
                 removeBall(ball);
-            }, 300);
+            }, 2000);
         }
     })
     .bindKeyPress('g', ()=> {

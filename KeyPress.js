@@ -28,8 +28,8 @@ class KeyPress{
             }
         }
         if(this.oKeys[evnt.key] !== KeyPress.DOWN) {
-            for(let func of (this.oListeners.onKeyChange[keyCode] || [])) {
-                func(KeyPress.DOWN, keyCode);
+            for(let func of (this.oListeners.onKeyChange[evnt.key] || [])) {
+                func(KeyPress.DOWN, evnt.key);
             }
         }
 
