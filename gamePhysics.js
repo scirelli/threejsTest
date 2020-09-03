@@ -11,7 +11,7 @@ import {
     b2PolygonShape
 } from './Box2D.js';
 
-const gravity = new b2Vec2(0.0, 10.0),
+const gravity = new b2Vec2(0.0, 0.0),
     DO_SLEEP = true,
     world = new b2World(gravity, DO_SLEEP);
 

@@ -101,46 +101,47 @@ canvas.addEventListener('click', (evt)=> {
 });
 
 let f = 100;
+
+function keyChange(keyState, body, forceVector) {
+    if(keyState) {
+        body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
+    }else{
+        body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
+    }
+}
+
 keyPress
     .bindKeyCodeChange(87, (state)=> {//w
-        if(state)
-            box2.physics.ApplyForce(new b2Vec2(0, -f), box2.physics.GetWorldCenter());
-        else
-            box2.physics.m_force.SetZero();
+        keyChange(state, box2, new b2Vec2(0, -f));
     })
     .bindKeyCodeChange(65, (state)=> {//a
-        if(state)
-            box2.physics.ApplyForce(new b2Vec2(-f, 0), box2.physics.GetWorldCenter());
-        else
-            box2.physics.m_force.SetZero();
+        keyChange(state, box2, new b2Vec2(-f, 0));
     })
     .bindKeyCodeChange(83, (state)=> {//s
-        if(state)
-            box2.physics.ApplyForce(new b2Vec2(0, f), box2.physics.GetWorldCenter());
-        else
-            box2.physics.m_force.SetZero();
+        keyChange(state, box2, new b2Vec2(0, f));
     })
     .bindKeyCodeChange(68, (state)=> {//d
-        if(state)
-            box2.physics.ApplyForce(new b2Vec2(f, 0), box2.physics.GetWorldCenter());
-        else
-            box2.physics.m_force.SetZero();
+        keyChange(state, box2, new b2Vec2(f, 0));
     })
     .bindKey('ArrowLeft', (state)=> {
-        if(state)
+        if(state) {
             lightBall.position.x = mainLight.position.x -= 0.1;
+        }
     })
     .bindKey('ArrowRight', (state)=> {
-        if(state)
+        if(state) {
             lightBall.position.x = mainLight.position.x += 0.1;
+        }
     })
     .bindKey('ArrowUp', (state)=> {
-        if(state)
+        if(state) {
             lightBall.position.y = mainLight.position.y += 0.1;
+        }
     })
     .bindKey('ArrowDown', (state)=> {
-        if(state)
+        if(state) {
             lightBall.position.y = mainLight.position.y -= 0.1;
+        }
     })
     .bindKey('r', (state)=> {
         if(state) {
