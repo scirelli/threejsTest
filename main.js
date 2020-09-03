@@ -147,6 +147,20 @@ keyPress
             lightBall.position.y = mainLight.position.y -= 0.1;
         }
     })
+    .bindKey('b', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle(),
+                pos = box2.physics.GetPosition(),
+                force = 100, //Math.randRange(10, 200),
+                impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
+                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce);
+            box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
+            balls.push(ball);
+            setTimeout(()=> {
+                removeBall(ball);
+            }, 300);
+        }
+    })
     .bindKeyPress('g', ()=> {
         hasGravity = !hasGravity;
         if(hasGravity)
@@ -167,10 +181,15 @@ keyPress
 
         let b;
         while(b = balls.pop()) { //eslint-disable-line no-cond-assign
-            world.DestroyBody(b.physical);
-            scene.remove(b.mesh);
+            removeBall(b);
         }
     });
+
+function removeBall(b) {
+    world.DestroyBody(b.physical);
+    scene.remove(b.mesh);
+    return b;
+}
 
 resizeCanvas();
 
@@ -235,10 +254,10 @@ function updateCameraPosition() {
     camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
 }
 
-function createBouncyBall(x=0, y=0) {
+function createBouncyBall(x=0, y=0, impulseForce) {
     let rtn = {
         mesh:     createBallMesh(x, y),
-        physical: createBallPhysics(x, y)
+        physical: createBallPhysics(x, y, impulseForce)
     };
     rtn.mesh.physics = rtn.physical;
     return rtn;
@@ -260,7 +279,7 @@ function createBallMesh(x=0, y=0) {
     return ball;
 }
 
-function createBallPhysics(x=0, y=0) {
+function createBallPhysics(x=0, y=0, impulseForce) {
     let circleShape = new b2CircleShape(1),
         circleFixtureDef = new b2FixtureDef(),
         circleBdDef = new b2BodyDef();
@@ -274,6 +293,9 @@ function createBallPhysics(x=0, y=0) {
     circleBdDef.position = {x: x, y: y};
     let ballbody = world.CreateBody(circleBdDef);
     ballbody.CreateFixture(circleFixtureDef);
+    if(impulseForce) {
+        ballbody.ApplyImpulse(impulseForce, ballbody.GetWorldCenter());
+    }
 
     return ballbody;
 }
