@@ -164,6 +164,12 @@ keyPress
         box2.physics.SetAngle(0);
         box2.physics.SetLinearVelocity({x: 0, y: 0});
         box2.physics.SetAngularVelocity();
+
+        let b;
+        while(b = balls.pop()) { //eslint-disable-line no-cond-assign
+            world.DestroyBody(b.physical);
+            scene.remove(b.mesh);
+        }
     });
 
 resizeCanvas();
