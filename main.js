@@ -1,5 +1,5 @@
 /*global THREE*/
-import {world, floorbody, box1Body, box2Body} from './gamePhysics.js';
+import {world, floorbody, box1Body, box2Body, gravity} from './gamePhysics.js';
 import {
     b2FixtureDef,
     b2BodyDef,
@@ -100,7 +100,7 @@ canvas.addEventListener('click', (evt)=> {
     }
 });
 
-let f = 100;
+let f = 100, hasGravity = true;
 
 function keyChange(keyState, body, forceVector) {
     if(keyState) {
@@ -113,15 +113,19 @@ function keyChange(keyState, body, forceVector) {
 keyPress
     .bindKeyCodeChange(87, (state)=> {//w
         keyChange(state, box2, new b2Vec2(0, -f));
+        console.log('w');
     })
     .bindKeyCodeChange(65, (state)=> {//a
         keyChange(state, box2, new b2Vec2(-f, 0));
+        console.log('a');
     })
     .bindKeyCodeChange(83, (state)=> {//s
         keyChange(state, box2, new b2Vec2(0, f));
+        console.log('s');
     })
     .bindKeyCodeChange(68, (state)=> {//d
         keyChange(state, box2, new b2Vec2(f, 0));
+        console.log('d');
     })
     .bindKey('ArrowLeft', (state)=> {
         if(state) {
@@ -143,18 +147,23 @@ keyPress
             lightBall.position.y = mainLight.position.y -= 0.1;
         }
     })
-    .bindKey('r', (state)=> {
-        if(state) {
-            box1.physics.SetPosition({x: 0, y: 5});
-            box1.physics.SetAngle(0);
-            box1.physics.SetLinearVelocity({x: 0, y: 0});
-            box1.physics.SetAngularVelocity();
+    .bindKeyPress('g', ()=> {
+        hasGravity = !hasGravity;
+        if(hasGravity)
+            world.SetGravity(gravity);
+        else
+            world.SetGravity(new b2Vec2(0, 0));
+    })
+    .bindKeyPress('r', ()=> {
+        box1.physics.SetPosition({x: 0, y: 5});
+        box1.physics.SetAngle(0);
+        box1.physics.SetLinearVelocity({x: 0, y: 0});
+        box1.physics.SetAngularVelocity();
 
-            box2.physics.SetPosition({x: 0, y: 0});
-            box2.physics.SetAngle(0);
-            box2.physics.SetLinearVelocity({x: 0, y: 0});
-            box2.physics.SetAngularVelocity();
-        }
+        box2.physics.SetPosition({x: 0, y: 0});
+        box2.physics.SetAngle(0);
+        box2.physics.SetLinearVelocity({x: 0, y: 0});
+        box2.physics.SetAngularVelocity();
     });
 
 resizeCanvas();

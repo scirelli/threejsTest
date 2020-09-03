@@ -11,7 +11,7 @@ import {
     b2PolygonShape
 } from './Box2D.js';
 
-const gravity = new b2Vec2(0.0, 0.0),
+const gravity = new b2Vec2(0.0, 10.0),
     DO_SLEEP = true,
     world = new b2World(gravity, DO_SLEEP);
 
@@ -61,4 +61,4 @@ box2BodyDef.angle = 0.0;
 let box2Body = world.CreateBody(box2BodyDef);
 box2Body.CreateFixture(box2FixtureDef);
 
-export {world, floorbody, box1Body, box2Body};
+export {world, floorbody, box1Body, box2Body, gravity};
