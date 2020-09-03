@@ -2,12 +2,12 @@
 var DELAY_DEFAULT = 500,
     WAIT_TIME     = DELAY_DEFAULT + 100;//Time to wait till key press queue is reset.
 
-const BindKeys = function(oElm, nTimeMS) {
+const BindKeyWord = function(oElm, nTimeMS) {
     this.setElement(oElm);
     this.nTimeMS = parseInt(nTimeMS) || DELAY_DEFAULT;
 };
 
-BindKeys.prototype = {
+BindKeyWord.prototype = {
     bindCharsToKeyPresses: function(sChars, fCallBack, aParams, context) {
         'use strict';
         var aKeyTimes = [],
@@ -71,4 +71,4 @@ BindKeys.prototype = {
     }
 };
 
-export default {BindKeys};
+export {BindKeyWord};

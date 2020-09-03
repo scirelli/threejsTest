@@ -8,6 +8,7 @@ import {
     b2Vec2
 } from './Box2D.js';
 import { KeyPress } from './KeyPress.js';
+import { BindKeyWord } from './BindKeyWord.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
@@ -99,27 +100,27 @@ canvas.addEventListener('click', (evt)=> {
     }
 });
 
-let f = 15;
+let f = 100;
 keyPress
-    .bindKeyCode(87, (state)=> {//w
+    .bindKeyCodeChange(87, (state)=> {//w
         if(state)
             box2.physics.ApplyForce(new b2Vec2(0, -f), box2.physics.GetWorldCenter());
         else
             box2.physics.m_force.SetZero();
     })
-    .bindKeyCode(65, (state)=> {//a
+    .bindKeyCodeChange(65, (state)=> {//a
         if(state)
             box2.physics.ApplyForce(new b2Vec2(-f, 0), box2.physics.GetWorldCenter());
         else
             box2.physics.m_force.SetZero();
     })
-    .bindKeyCode(83, (state)=> {//s
+    .bindKeyCodeChange(83, (state)=> {//s
         if(state)
             box2.physics.ApplyForce(new b2Vec2(0, f), box2.physics.GetWorldCenter());
         else
             box2.physics.m_force.SetZero();
     })
-    .bindKeyCode(68, (state)=> {//d
+    .bindKeyCodeChange(68, (state)=> {//d
         if(state)
             box2.physics.ApplyForce(new b2Vec2(f, 0), box2.physics.GetWorldCenter());
         else

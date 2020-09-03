@@ -12,6 +12,7 @@
   "author": "Steve Cirelli",
   "license": "ISC",
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.7.0"
   },
   "dependencies": {
