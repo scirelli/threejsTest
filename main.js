@@ -8,7 +8,6 @@ import {
     b2Vec2
 } from './Box2D.js';
 import { KeyPress } from './KeyPress.js';
-import { BindKeyWord } from './BindKeyWord.js';
 
 const renderer = new THREE.WebGLRenderer(),
     scene = new THREE.Scene(),
@@ -85,10 +84,6 @@ canvas.addEventListener('click', (evt)=> {
     if(obj) {
         let mag = Math.sqrt(obj.point.x*obj.point.x + obj.point.y*obj.point.y),
             uv = {x: obj.point.x/mag, y: obj.point.y/mag},
-            o = {
-                x: ((obj.point.x/obj.point.z)/2)*-10,
-                y: ((obj.point.y/obj.point.z)/2)*10
-            },
             f = 50;
 
         obj.object.physics.ApplyImpulse(
@@ -100,51 +95,79 @@ canvas.addEventListener('click', (evt)=> {
     }
 });
 
-let f = 100, hasGravity = true;
+let f = 100, hasGravity = true,
+    actingForces = {
+        87: [], 65: [], 83: [], 68: []
+    },
+    actingTorques = {e: [], q: []};
 
-function keyChange(keyState, body, forceVector) {
+function keyChange(key, keyState, body, forceVector) {
     if(keyState) {
         body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
+        actingForces[key].push({body, forceVector, atPos: body.physics.GetWorldCenter()});
     }else{
-        body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
+        //body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
+        for(let list = actingForces[key], i=list.length-1, o; i>=0; i--) {
+            o = list[i];
+            if(o.body === body) {
+                list.splice(i, 1);
+                break;
+            }
+        }
     }
 }
 
 keyPress
     .bindKeyCodeChange(87, (state)=> {//w
-        keyChange(state, box2, new b2Vec2(0, -f));
+        keyChange(87, state, box2, new b2Vec2(0, -f));
         console.log('w');
     })
     .bindKeyCodeChange(65, (state)=> {//a
-        keyChange(state, box2, new b2Vec2(-f, 0));
+        keyChange(65, state, box2, new b2Vec2(-f, 0));
         console.log('a');
     })
     .bindKeyCodeChange(83, (state)=> {//s
-        keyChange(state, box2, new b2Vec2(0, f));
+        keyChange(83, state, box2, new b2Vec2(0, f));
         console.log('s');
     })
     .bindKeyCodeChange(68, (state)=> {//d
-        keyChange(state, box2, new b2Vec2(f, 0));
+        keyChange(68, state, box2, new b2Vec2(f, 0));
         console.log('d');
     })
     .bindKeyChange('e', (state)=> {
-        let pbox = box2.physics,
+        let body = box2,
+            pbox = body.physics,
             force = 10;
 
         if(state) {
             pbox.ApplyTorque(force);
+            actingTorques['e'].push({body, force});
         }else {
-            pbox.ApplyTorque(-force);
+            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+                o = list[i];
+                if(o.body === body) {
+                    list.splice(i, 1);
+                    break;
+                }
+            }
         }
     })
     .bindKeyChange('q', (state)=> {
-        let pbox = box2.physics,
+        let body = box2,
+            pbox = body.physics,
             force = -10;
 
         if(state) {
             pbox.ApplyTorque(force);
+            actingTorques['e'].push({body, force});
         }else {
-            pbox.ApplyTorque(-force);
+            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+                o = list[i];
+                if(o.body === body) {
+                    list.splice(i, 1);
+                    break;
+                }
+            }
         }
     })
     .bindKey('ArrowLeft', (state)=> {
@@ -205,6 +228,19 @@ keyPress
         }
     });
 
+function applyActingForces() {
+    Object.getOwnPropertyNames(actingForces).forEach(name=> {
+        actingForces[name].forEach(o=> {
+            o.body.physics.ApplyForce(o.forceVector, o.atPos);
+        });
+    });
+    Object.getOwnPropertyNames(actingTorques).forEach(name=> {
+        actingTorques[name].forEach(o=> {
+            o.body.physics.ApplyTorque(o.force);
+        });
+    });
+}
+
 function removeBall(b) {
     world.DestroyBody(b.physical);
     scene.remove(b.mesh);
@@ -214,8 +250,9 @@ function removeBall(b) {
 resizeCanvas();
 
 (function animate() {
+    applyActingForces();
     world.Step(timeStep, iteration);
-    //world.ClearForces();
+    world.ClearForces();
 
     let pos = box1Body.GetPosition(),
         angle = box1Body.GetAngle();
