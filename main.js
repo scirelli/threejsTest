@@ -134,10 +134,46 @@ keyPress
         keyChange(68, state, box2, new b2Vec2(f, 0));
         console.log('d');
     })
+    .bindKeyChange('l', (state)=> {
+        let body = box2,
+            pbox = body.physics,
+            force = 10;
+
+        if(state) {
+            pbox.ApplyTorque(force);
+            actingTorques['e'].push({body, force});
+        }else {
+            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+                o = list[i];
+                if(o.body === body) {
+                    list.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    })
     .bindKeyChange('e', (state)=> {
         let body = box2,
             pbox = body.physics,
             force = 10;
+
+        if(state) {
+            pbox.ApplyTorque(force);
+            actingTorques['e'].push({body, force});
+        }else {
+            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+                o = list[i];
+                if(o.body === body) {
+                    list.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    })
+    .bindKeyChange('j', (state)=> {
+        let body = box2,
+            pbox = body.physics,
+            force = -10;
 
         if(state) {
             pbox.ApplyTorque(force);
@@ -191,6 +227,20 @@ keyPress
         }
     })
     .bindKey('b', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle(),
+                pos = box2.physics.GetPosition(),
+                force = 100, //Math.randRange(10, 200),
+                impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
+                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce);
+            box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
+            balls.push(ball);
+            setTimeout(()=> {
+                removeBall(ball);
+            }, 2000);
+        }
+    })
+    .bindKey(' ', (state)=> {
         if(state) {
             let angle = box2.physics.GetAngle(),
                 pos = box2.physics.GetPosition(),
