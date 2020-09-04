@@ -1,4 +1,5 @@
 /*global THREE*/
+/*eslint-disable no-console*/
 import {world, floorbody, box1Body, box2Body, gravity} from './gamePhysics.js';
 import {
     b2FixtureDef,
@@ -97,9 +98,9 @@ canvas.addEventListener('click', (evt)=> {
 
 let f = 100, hasGravity = true,
     actingForces = {
-        87: [], 65: [], 83: [], 68: []
+        87: [], 65: [], 83: [], 68: [], w: [], a: [], s: [], d: []
     },
-    actingTorques = {e: [], q: []};
+    actingTorques = {e: [], q: [], l: [], j: []};
 
 function keyChange(key, keyState, body, forceVector) {
     if(keyState) {
@@ -118,21 +119,21 @@ function keyChange(key, keyState, body, forceVector) {
 }
 
 keyPress
-    .bindKeyCodeChange(87, (state)=> {//w
-        keyChange(87, state, box2, new b2Vec2(0, -f));
-        console.log('w');
+    .bindKeyChange('w', (state)=> {
+        keyChange('w', state, box2, new b2Vec2(0, -f));
+        console.debug('w');
     })
-    .bindKeyCodeChange(65, (state)=> {//a
+    .bindKeyChange('a', (state)=> {
         keyChange(65, state, box2, new b2Vec2(-f, 0));
-        console.log('a');
+        console.debug('a');
     })
-    .bindKeyCodeChange(83, (state)=> {//s
-        keyChange(83, state, box2, new b2Vec2(0, f));
-        console.log('s');
+    .bindKeyChange('s', (state)=> {
+        keyChange('s', state, box2, new b2Vec2(0, f));
+        console.debug('s');
     })
-    .bindKeyCodeChange(68, (state)=> {//d
-        keyChange(68, state, box2, new b2Vec2(f, 0));
-        console.log('d');
+    .bindKeyChange('d', (state)=> {//d
+        keyChange('d', state, box2, new b2Vec2(f, 0));
+        console.debug('d');
     })
     .bindKeyChange('l', (state)=> {
         let body = box2,
@@ -141,9 +142,9 @@ keyPress
 
         if(state) {
             pbox.ApplyTorque(force);
-            actingTorques['e'].push({body, force});
+            actingTorques['l'].push({body, force});
         }else {
-            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+            for(let key='l', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
                 o = list[i];
                 if(o.body === body) {
                     list.splice(i, 1);
@@ -177,9 +178,9 @@ keyPress
 
         if(state) {
             pbox.ApplyTorque(force);
-            actingTorques['e'].push({body, force});
+            actingTorques['j'].push({body, force});
         }else {
-            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+            for(let key='j', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
                 o = list[i];
                 if(o.body === body) {
                     list.splice(i, 1);
@@ -232,7 +233,8 @@ keyPress
                 pos = box2.physics.GetPosition(),
                 force = 100, //Math.randRange(10, 200),
                 impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
-                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce);
+                initVel = box2.physics.GetLinearVelocity(),
+                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce, initVel);
             box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
             balls.push(ball);
             setTimeout(()=> {
@@ -246,7 +248,9 @@ keyPress
                 pos = box2.physics.GetPosition(),
                 force = 100, //Math.randRange(10, 200),
                 impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
-                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce);
+                initVel = box2.physics.GetLinearVelocity(),
+                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce, initVel);
+
             box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
             balls.push(ball);
             setTimeout(()=> {
@@ -361,10 +365,10 @@ function updateCameraPosition() {
     camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
 }
 
-function createBouncyBall(x=0, y=0, impulseForce) {
+function createBouncyBall(x=0, y=0, impulseForce, initVel) {
     let rtn = {
         mesh:     createBallMesh(x, y),
-        physical: createBallPhysics(x, y, impulseForce)
+        physical: createBallPhysics(x, y, impulseForce, initVel)
     };
     rtn.mesh.physics = rtn.physical;
     return rtn;
@@ -386,7 +390,7 @@ function createBallMesh(x=0, y=0) {
     return ball;
 }
 
-function createBallPhysics(x=0, y=0, impulseForce) {
+function createBallPhysics(x=0, y=0, impulseForce, initVel) {
     let circleShape = new b2CircleShape(1),
         circleFixtureDef = new b2FixtureDef(),
         circleBdDef = new b2BodyDef();
@@ -400,10 +404,12 @@ function createBallPhysics(x=0, y=0, impulseForce) {
     circleBdDef.position = {x: x, y: y};
     let ballbody = world.CreateBody(circleBdDef);
     ballbody.CreateFixture(circleFixtureDef);
+    if(initVel) {
+        ballbody.SetLinearVelocity(initVel);
+    }
     if(impulseForce) {
         ballbody.ApplyImpulse(impulseForce, ballbody.GetWorldCenter());
     }
-
     return ballbody;
 }
 
