@@ -1,12 +1,15 @@
 /*global THREE*/
 /*eslint-disable no-console*/
-import {world, floorbody, box1Body, box2Body, gravity} from './gamePhysics.js';
+import {world, box1Body, box2Body, gravity} from './gamePhysics.js';
 import {
-    b2FixtureDef,
-    b2BodyDef,
+    Box2D,
+    b2Vec2,
+    //b2World,
     b2CircleShape,
     b2Body,
-    b2Vec2
+    b2FixtureDef,
+    b2BodyDef,
+    b2PolygonShape
 } from './Box2D.js';
 import { KeyPress } from './KeyPress.js';
 
@@ -23,8 +26,10 @@ const renderer = new THREE.WebGLRenderer(),
         'map':       texture,
         'roughness': 0.8
     }),
-
-    floor = new THREE.Mesh(new THREE.BoxGeometry(12, 2, 6), material),
+    floor = createWall({x: 0*2, y: 20}, {width: 24, height: 0.5}),
+    ceiling = createWall({x: 0*2, y: -20}, {width: 24, height: 0.5}),
+    leftWall = createWall({x: -24, y: 0}, {width: 0.5, height: 20}),
+    rightWall = createWall({x: 24, y: 0}, {width: 0.5, height: 20}),
     box1  = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 4), material),
     box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), material),
     lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF})),
@@ -39,10 +44,11 @@ let translate = {x: 0, y: 0},
     canvas,
     balls = [];
 
-floor.position.y = -floorbody.GetPosition().y;
-floor.castShadow = true;
-floor.receiveShadow = true;
+scene.add(ceiling);
 scene.add(floor);
+scene.add(leftWall);
+scene.add(rightWall);
+
 box1.position.y = -box1Body.GetPosition().y;
 box1.physics = box1Body;
 box1.castShadow = true;
@@ -70,53 +76,11 @@ mainLight.shadow.mapSize.height = 512;
 scene.add(mainLight);
 scene.add(ambientLight);
 
-window.addEventListener('resize', resizeCanvas);
-canvas.addEventListener('click', (evt)=> {
-    evt.preventDefault();
-
-    let mousePosition = new THREE.Vector2();
-
-    mousePosition.x = ((evt.clientX - canvas.offsetLeft) / canvas.width) * 2 - 1;
-    mousePosition.y = -((evt.clientY - canvas.offsetTop) / canvas.height) * 2 + 1;
-    rayCaster.setFromCamera(mousePosition, camera);
-    let intersections = rayCaster.intersectObjects(scene.children, true),
-        obj = intersections[0];
-
-    if(obj) {
-        let mag = Math.sqrt(obj.point.x*obj.point.x + obj.point.y*obj.point.y),
-            uv = {x: obj.point.x/mag, y: obj.point.y/mag},
-            f = 50;
-
-        obj.object.physics.ApplyImpulse(
-            new b2Vec2(uv.x*-f, uv.y*f),
-            obj.object.physics.GetWorldCenter()
-        );
-    }else {
-        balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
-    }
-});
-
 let f = 100, hasGravity = true,
     actingForces = {
         87: [], 65: [], 83: [], 68: [], w: [], a: [], s: [], d: []
     },
     actingTorques = {e: [], q: [], l: [], j: []};
-
-function keyChange(key, keyState, body, forceVector) {
-    if(keyState) {
-        body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
-        actingForces[key].push({body, forceVector, atPos: body.physics.GetWorldCenter()});
-    }else{
-        //body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
-        for(let list = actingForces[key], i=list.length-1, o; i>=0; i--) {
-            o = list[i];
-            if(o.body === body) {
-                list.splice(i, 1);
-                break;
-            }
-        }
-    }
-}
 
 keyPress
     .bindKeyChange('w', (state)=> {
@@ -131,85 +95,25 @@ keyPress
         //keyChange('s', state, box2, new b2Vec2(0, f));
         console.debug('s');
     })
-    .bindKeyChange('a', (state)=> {
-        keyChange(65, state, box2, new b2Vec2(-f, 0));
-        console.debug('a');
-    })
-    .bindKeyChange('d', (state)=> {//d
-        keyChange('d', state, box2, new b2Vec2(f, 0));
-        console.debug('d');
-    })
-    .bindKeyChange('l', (state)=> {
-        let body = box2,
-            pbox = body.physics,
-            force = 20;
-
-        if(state) {
-            pbox.ApplyTorque(force);
-            actingTorques['l'].push({body, force});
-        }else {
-            for(let key='l', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
-                o = list[i];
-                if(o.body === body) {
-                    list.splice(i, 1);
-                    break;
-                }
-            }
-        }
+    .bindKeyChange('q', (state)=> {
+        keyChange('q', state, box2, new b2Vec2(-f, 0));
+        console.debug('q');
     })
     .bindKeyChange('e', (state)=> {
-        let body = box2,
-            pbox = body.physics,
-            force = 10;
-
-        if(state) {
-            pbox.ApplyTorque(force);
-            actingTorques['e'].push({body, force});
-        }else {
-            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
-                o = list[i];
-                if(o.body === body) {
-                    list.splice(i, 1);
-                    break;
-                }
-            }
-        }
+        keyChange('e', state, box2, new b2Vec2(f, 0));
+        console.debug('e');
+    })
+    .bindKeyChange('l', (state)=> {
+        turnBox(box2, 'l', state, 20);
+    })
+    .bindKeyChange('d', (state)=> {
+        turnBox(box2, 'd', state, 10);
     })
     .bindKeyChange('j', (state)=> {
-        let body = box2,
-            pbox = body.physics,
-            force = -20;
-
-        if(state) {
-            pbox.ApplyTorque(force);
-            actingTorques['j'].push({body, force});
-        }else {
-            for(let key='j', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
-                o = list[i];
-                if(o.body === body) {
-                    list.splice(i, 1);
-                    break;
-                }
-            }
-        }
+        turnBox(box2, 'j', state, -20);
     })
-    .bindKeyChange('q', (state)=> {
-        let body = box2,
-            pbox = body.physics,
-            force = -10;
-
-        if(state) {
-            pbox.ApplyTorque(force);
-            actingTorques['e'].push({body, force});
-        }else {
-            for(let key='e', list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
-                o = list[i];
-                if(o.body === body) {
-                    list.splice(i, 1);
-                    break;
-                }
-            }
-        }
+    .bindKeyChange('a', (state)=> {
+        turnBox(box2, 'a', state, -10);
     })
     .bindKey('ArrowLeft', (state)=> {
         if(state) {
@@ -286,26 +190,33 @@ keyPress
         }
     });
 
-function applyActingForces() {
-    Object.getOwnPropertyNames(actingForces).forEach(name=> {
-        actingForces[name].forEach(o=> {
-            o.body.physics.ApplyForce(o.forceVector, o.atPos);
-        });
-    });
-    Object.getOwnPropertyNames(actingTorques).forEach(name=> {
-        actingTorques[name].forEach(o=> {
-            o.body.physics.ApplyTorque(o.force);
-        });
-    });
-}
-
-function removeBall(b) {
-    world.DestroyBody(b.physical);
-    scene.remove(b.mesh);
-    return b;
-}
-
 resizeCanvas();
+
+window.addEventListener('resize', resizeCanvas);
+canvas.addEventListener('click', (evt)=> {
+    evt.preventDefault();
+
+    let mousePosition = new THREE.Vector2();
+
+    mousePosition.x = ((evt.clientX - canvas.offsetLeft) / canvas.width) * 2 - 1;
+    mousePosition.y = -((evt.clientY - canvas.offsetTop) / canvas.height) * 2 + 1;
+    rayCaster.setFromCamera(mousePosition, camera);
+    let intersections = rayCaster.intersectObjects(scene.children, true),
+        obj = intersections[0];
+
+    if(obj) {
+        let mag = Math.sqrt(obj.point.x*obj.point.x + obj.point.y*obj.point.y),
+            uv = {x: obj.point.x/mag, y: obj.point.y/mag},
+            f = 50;
+
+        obj.object.physics.ApplyImpulse(
+            new b2Vec2(uv.x*-f, uv.y*f),
+            obj.object.physics.GetWorldCenter()
+        );
+    }else {
+        balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
+    }
+});
 
 (function animate() {
     applyActingForces();
@@ -341,10 +252,6 @@ resizeCanvas();
         b.mesh.rotation.z = -angle;
     });
 
-    // console.log(`box2(${box2.position.x},${box2.position.y})`);
-    // console.log(`box1(${box1.position.x},${box1.position.y})`);
-    // console.log(`floor(${floorPos.x},${-floorPos.y})`);
-
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 })();
@@ -365,8 +272,60 @@ function resizeCanvas() {
     updateCameraPosition();
 }
 
+function keyChange(key, keyState, body, forceVector) {
+    if(keyState) {
+        body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
+        actingForces[key].push({body, forceVector, atPos: body.physics.GetWorldCenter()});
+    }else{
+        //body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
+        for(let list = actingForces[key], i=list.length-1, o; i>=0; i--) {
+            o = list[i];
+            if(o.body === body) {
+                list.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
+
+function turnBox(body, key, state, force) {
+    let pbox = body.physics;
+
+    if(state) {
+        pbox.ApplyTorque(force);
+        actingTorques[key].push({body, force});
+    }else {
+        for(let list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
+            o = list[i];
+            if(o.body === body) {
+                list.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
+
+function applyActingForces() {
+    Object.getOwnPropertyNames(actingForces).forEach(name=> {
+        actingForces[name].forEach(o=> {
+            o.body.physics.ApplyForce(o.forceVector, o.atPos);
+        });
+    });
+    Object.getOwnPropertyNames(actingTorques).forEach(name=> {
+        actingTorques[name].forEach(o=> {
+            o.body.physics.ApplyTorque(o.force);
+        });
+    });
+}
+
 function updateCameraPosition() {
     camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
+}
+
+function removeBall(b) {
+    world.DestroyBody(b.physical);
+    scene.remove(b.mesh);
+    return b;
 }
 
 function createBouncyBall(x=0, y=0, impulseForce, initVel) {
@@ -415,6 +374,47 @@ function createBallPhysics(x=0, y=0, impulseForce, initVel) {
         ballbody.ApplyImpulse(impulseForce, ballbody.GetWorldCenter());
     }
     return ballbody;
+}
+
+function createWall(pos, dim) {
+    let physics = createWallPhysics(pos, dim),
+        mesh = createWallMesh({x: physics.GetPosition().x, y: -physics.GetPosition().y}, {width: dim.width*2, height: dim.height*2});
+    mesh.physics = physics;
+    return mesh;
+}
+
+function createWallMesh(pos, dim) {
+    let texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
+        material = new THREE.MeshStandardMaterial({
+            'map':       texture,
+            'roughness': 0.8
+        }),
+        depth = 6,
+        wall = new THREE.Mesh(new THREE.BoxGeometry(dim.width, dim.height, depth), material);
+    wall.castShadow = true;
+    wall.receiveShadow = true;
+    wall.position.y = pos.y;
+    wall.position.x = pos.x;
+
+    return wall;
+}
+
+function createWallPhysics(pos, dim) {
+    let floorshape = new b2PolygonShape(),
+        floorfixtureDef = new b2FixtureDef(),
+        floorbodyDef = new b2BodyDef();
+
+    floorshape.SetAsOrientedBox(dim.width, dim.height, {x: 0, y: 0}, 0);
+    floorfixtureDef.shape = floorshape;
+    floorfixtureDef.density = 1;
+    floorfixtureDef.friction = 0.5;
+    floorfixtureDef.restitution = 0.5;
+    floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
+    floorbodyDef.position = pos;
+    floorbodyDef.angle = 0.0;
+    let floorbody = world.CreateBody(floorbodyDef);
+    floorbody.CreateFixture(floorfixtureDef);
+    return floorbody;
 }
 
 Math.randRange = function(min, max) {

@@ -16,20 +16,20 @@ const gravity = new b2Vec2(0.0, 10.0),
     world = new b2World(gravity, DO_SLEEP);
 
 
-let floorshape = new b2PolygonShape(),
-    floorfixtureDef = new b2FixtureDef(),
-    floorbodyDef = new b2BodyDef();
+// let floorshape = new b2PolygonShape(),
+//     floorfixtureDef = new b2FixtureDef(),
+//     floorbodyDef = new b2BodyDef();
 
-floorshape.SetAsOrientedBox(6, 1, {x: 0, y: 0}, 0);
-floorfixtureDef.shape = floorshape;
-floorfixtureDef.density = 1;
-floorfixtureDef.friction = 0.5;
-floorfixtureDef.restitution = 0.5;
-floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
-floorbodyDef.position = {x: 0, y: 15};
-floorbodyDef.angle = 0.0;
-let floorbody = world.CreateBody(floorbodyDef);
-floorbody.CreateFixture(floorfixtureDef);
+// floorshape.SetAsOrientedBox(6, 0.5, {x: 0, y: 0}, 0);
+// floorfixtureDef.shape = floorshape;
+// floorfixtureDef.density = 1;
+// floorfixtureDef.friction = 0.5;
+// floorfixtureDef.restitution = 0.5;
+// floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
+// floorbodyDef.position = {x: 0, y: 15};
+// floorbodyDef.angle = 0.0;
+// let floorbody = world.CreateBody(floorbodyDef);
+// floorbody.CreateFixture(floorfixtureDef);
 
 let box1Shape = new b2PolygonShape(),
     box1FixtureDef = new b2FixtureDef(),
@@ -61,4 +61,4 @@ box2BodyDef.angle = 0.0;
 let box2Body = world.CreateBody(box2BodyDef);
 box2Body.CreateFixture(box2FixtureDef);
 
-export {world, floorbody, box1Body, box2Body, gravity};
+export {world, /*floorbody,*/ box1Body, box2Body, gravity};
