@@ -120,16 +120,20 @@ function keyChange(key, keyState, body, forceVector) {
 
 keyPress
     .bindKeyChange('w', (state)=> {
-        keyChange('w', state, box2, new b2Vec2(0, -f));
+        let angle = box2.physics.GetAngle();
+        keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+        //keyChange('w', state, box2, new b2Vec2(0, -f));
         console.debug('w');
+    })
+    .bindKeyChange('s', (state)=> {
+        let angle = box2.physics.GetAngle();
+        keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
+        //keyChange('s', state, box2, new b2Vec2(0, f));
+        console.debug('s');
     })
     .bindKeyChange('a', (state)=> {
         keyChange(65, state, box2, new b2Vec2(-f, 0));
         console.debug('a');
-    })
-    .bindKeyChange('s', (state)=> {
-        keyChange('s', state, box2, new b2Vec2(0, f));
-        console.debug('s');
     })
     .bindKeyChange('d', (state)=> {//d
         keyChange('d', state, box2, new b2Vec2(f, 0));
@@ -138,7 +142,7 @@ keyPress
     .bindKeyChange('l', (state)=> {
         let body = box2,
             pbox = body.physics,
-            force = 10;
+            force = 20;
 
         if(state) {
             pbox.ApplyTorque(force);
@@ -174,7 +178,7 @@ keyPress
     .bindKeyChange('j', (state)=> {
         let body = box2,
             pbox = body.physics,
-            force = -10;
+            force = -20;
 
         if(state) {
             pbox.ApplyTorque(force);
