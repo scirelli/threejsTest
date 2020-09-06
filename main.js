@@ -85,8 +85,20 @@ let f = 100, hasGravity = true;
 keyPress
     .onKey('w', (state)=> {
         if(state) {
-            let angle = box2.physics.GetAngle();
+            let pbox = box2.physics,
+                angle = pbox.GetAngle();
             keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+
+            // let vel = pbox.GetLinearVelocity(),
+            //     velAngle = Math.atan2(vel.y, vel.x),
+            //     da = velAngle - angle;
+
+            // if(da > velAngle) {
+            //     turnBox(box2, -1000 * (da/velAngle));
+            // }
+            // if(da > velAngle) {
+            //     turnBox(box2, 1000 * (da/velAngle));
+            // }
         }
     })
     .onKey('s', (state)=> {
@@ -97,22 +109,22 @@ keyPress
     })
     .onKey('l', (state)=> {
         if(state) {
-            turnBox(box2, 'l', state, 80);
+            turnBox(box2, 1*0.1);
         }
     })
     .onKey('d', (state)=> {
         if(state) {
-            turnBox(box2, 'd', state, 80);
+            turnBox(box2, 1*0.1);
         }
     })
     .onKey('j', (state)=> {
         if(state) {
-            turnBox(box2, 'j', state, -80);
+            turnBox(box2, -1*0.1);
         }
     })
     .onKey('a', (state)=> {
         if(state) {
-            turnBox(box2, 'a', state, -80);
+            turnBox(box2, -1*0.1);
         }
     })
     .onKey('ArrowLeft', (state)=> {
@@ -256,18 +268,18 @@ function keyChange(key, keyState, body, forceVector) {
     }
 }
 
-function turnBox(body, key, state, force) {
+function turnBox(body, force, dt) {
     let pbox = body.physics;
 
-    if(state) {
-        pbox.ApplyTorque(force);
-        if(pbox.GetAngularVelocity() > 3) {
-            pbox.SetAngularVelocity(3);
-        }
-        if(pbox.GetAngularVelocity() < -3) {
-            pbox.SetAngularVelocity(-3);
-        }
-    }
+    pbox.SetAngle(pbox.GetAngle() + force);
+    pbox.SetAngularVelocity(0);
+    //pbox.ApplyTorque(force);
+    // if(pbox.GetAngularVelocity() > 3) {
+    //     pbox.SetAngularVelocity(3);
+    // }
+    // if(pbox.GetAngularVelocity() < -3) {
+    //     pbox.SetAngularVelocity(-3);
+    // }
 }
 
 function updateCameraPosition() {
