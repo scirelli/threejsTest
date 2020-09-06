@@ -6,111 +6,119 @@ class KeyPress{
 
     constructor(oElm) {
         this.elm = oElm;
-        this.oKeyCodes = {};
-        this.oKeys = {};
+        this.oKeyCodeStates = {};
+        this.oKeyStates = {};
         this.oListeners = {
-            onEveryKeyCode:  {},
-            onEveryKey:      {},
+            onKey:           {},
+            onKeyCode:       {},
             onKeyCodeChange: {},
             onKeyChange:     {},
-            onKeyPress:      {},
-            onKeyCodePress:  {}
+            onKeyCodePress:  {},
+            onKeyPress:      {}
         };
-        this._keydown = this.onKeyDown.bind(this);
+        this._keydown = this._onKeyDown.bind(this);
         oElm.addEventListener('keydown', this._keydown);
-        this._keyup = this.onKeyUp.bind(this);
+        this._keyup = this._onKeyUp.bind(this);
         oElm.addEventListener('keyup', this._keyup);
     }
 
-    onKeyDown(evnt) {
-        let keyCode = evnt.keyCode || evnt.code;
-
-        if(this.oKeyCodes[keyCode] !== KeyPress.DOWN) {
-            for(let func of (this.oListeners.onKeyCodeChange[keyCode] || [])) {
-                func(KeyPress.DOWN, keyCode);
-            }
-        }
-        if(this.oKeys[evnt.key] !== KeyPress.DOWN) {
-            for(let func of (this.oListeners.onKeyChange[evnt.key] || [])) {
-                func(KeyPress.DOWN, evnt.key);
+    processKeys() {
+        for(let keyCode in this.oListeners.onKeyCode) {
+            for(let listener of (this.oListeners.onKeyCode[keyCode] || [])) {
+                listener(this.oKeyCodeStates[keyCode], keyCode);
             }
         }
 
-        this.oKeyCodes[keyCode] = KeyPress.DOWN;
-        this.oKeys[evnt.key] = KeyPress.DOWN;
-
-        for(let func of (this.oListeners.onEveryKeyCode[keyCode] || [])) {
-            func(KeyPress.DOWN, keyCode);
-        }
-
-        for(let func of (this.oListeners.onEveryKey[evnt.key] || [])) {
-            func(KeyPress.DOWN, evnt.key);
+        for(let key in this.oListeners.onKey) {
+            for(let listener of (this.oListeners.onKey[key] || [])) {
+                listener(this.oKeyStates[key], key);
+            }
         }
     }
 
-    onKeyUp(evnt) {
+    onKey(key, func) {
+        this._bindKeyCodeEvent('onKey', key, func);
+        return this;
+    }
+
+    onKeyCode(keyCode, func) {
+        this._bindKeyCodeEvent('onKeyCode', keyCode, func);
+        return this;
+    }
+
+    onKeyCodeChange(keyCode, func) {
+        this._bindKeyCodeEvent('onKeyCodeChange', keyCode, func);
+        return this;
+    }
+
+    onKeyChange(key, func) {
+        this._bindKeyEvent('onKeyChange', key, func);
+        return this;
+    }
+
+    onKeyPress(key, func) {
+        this._bindKeyEvent('onKeyPress', key, func);
+        return this;
+    }
+
+    onKeyCodePress(key, func) {
+        this._bindKeyCodeEvent('onKeyCodePress', key, func);
+        return this;
+    }
+
+    getKeyState(key) {
+        return this.oKeyStates[key];
+    }
+
+    getKeyCodeState(keyCode) {
+        return this.oKeyCodeStates[keyCode];
+    }
+
+    unBind() {
+        this.elm.removeEventListener('keyup', this._keyup);
+        this.elm.removeEventListener('keydown', this._keydown);
+    }
+
+    _onKeyDown(evnt) {
+        this._keyActivity(evnt, KeyPress.DOWN);
+    }
+
+    _onKeyUp(evnt) {
         let keyCode = evnt.keyCode || evnt.code;
 
-        if(this.oKeyCodes[keyCode] !== KeyPress.UP) {
-            for(let func of (this.oListeners.onKeyCodeChange[keyCode] || [])) {
-                func(KeyPress.UP, keyCode);
-            }
+        if(this.oKeyCodeStates[keyCode] !== KeyPress.UP) {
             for(let func of (this.oListeners.onKeyCodePress[keyCode] || [])) {
                 func(KeyPress.UP, keyCode);
             }
         }
-        if(this.oKeys[evnt.key] !== KeyPress.UP) {
-            for(let func of (this.oListeners.onKeyChange[evnt.key] || [])) {
-                func(KeyPress.UP, evnt.key);
-            }
+        if(this.oKeyStates[evnt.key] !== KeyPress.UP) {
             for(let func of (this.oListeners.onKeyPress[evnt.key] || [])) {
                 func(KeyPress.UP, evnt.key);
             }
         }
 
-        this.oKeyCodes[keyCode] = KeyPress.UP;
-        this.oKeys[evnt.key] = KeyPress.UP;
+        this._keyActivity(evnt, KeyPress.UP);
+    }
 
-        for(let func of (this.oListeners.onEveryKeyCode[keyCode] || [])) {
-            func(KeyPress.UP, keyCode);
+    _keyActivity(evnt, state) {
+        let keyCode = evnt.keyCode || evnt.code;
+
+        if(this.oKeyCodeStates[keyCode] !== state) {
+            for(let func of (this.oListeners.onKeyCodeChange[keyCode] || [])) {
+                func(state, keyCode);
+            }
+        }
+        if(this.oKeyStates[evnt.key] !== state) {
+            for(let func of (this.oListeners.onKeyChange[evnt.key] || [])) {
+                func(state, evnt.key);
+            }
         }
 
-        for(let func of (this.oListeners.onEveryKey[evnt.key] || [])) {
-            func(KeyPress.UP, evnt.key);
-        }
+        this.oKeyCodeStates[keyCode] = state;
+        this.oKeyStates[evnt.key] = state;
     }
 
-    bindKeyCode(keyCode, func) {
-        this._bindKeyCode('onEveryKeyCode', keyCode, func);
-        return this;
-    }
-
-    bindKey(key, func) {
-        this._bindKey('onEveryKey', key, func);
-        return this;
-    }
-
-    bindKeyCodeChange(keyCode, func) {
-        this._bindKeyCode('onKeyCodeChange', keyCode, func);
-        return this;
-    }
-
-    bindKeyChange(key, func) {
-        this._bindKey('onKeyChange', key, func);
-        return this;
-    }
-
-    bindKeyPress(key, func) {
-        this._bindKey('onKeyPress', key, func);
-        return this;
-    }
-
-    bindKeyCodePress(key, func) {
-        this._bindKeyCode('onKeyCodePress', key, func);
-        return this;
-    }
-
-    _bindKey(evnt, key, func) {
+    _bindKeyEvent(evnt, key, func) {
         if(this.oListeners[evnt][key])
             this.oListeners[evnt][key].push(func);
         else
@@ -123,7 +131,7 @@ class KeyPress{
         };
     }
 
-    _bindKeyCode(evnt, key, func) {
+    _bindKeyCodeEvent(evnt, key, func) {
         if(this.oListeners[evnt][key])
             this.oListeners[evnt][key].push(func);
         else
@@ -134,52 +142,25 @@ class KeyPress{
             this.oListeners[evnt][key].splice(i, 1);
             return this;
         };
-    }
-
-    getKeyState(key) {
-        return this.oKeys[key];
-    }
-
-    getKeyCodeState(keyCode) {
-        return this.oKeyCodes[keyCode];
     }
 
     static bindKeys(list) {
-        let unbinds = [],
-            keyPress = new KeyPress();
-        bindKeys(list);
+        let keyPress = new KeyPress();
 
-        function bindKeys(list) {
-            list.forEach(o=> {
-                unbinds.push(keyPress._bindKey.apply(keyPress, o));
-            });
-        }
-        return {
-            unbind: function unbind() {
-                unbinds.forEach(u=>u());
-            },
-            bindKeys: bindKeys,
-            keyPress: keyPress
-        };
+        list.forEach(args=> {
+            keyPress._bindKeyEvent.apply(keyPress, args);
+        });
+
+        return keyPress;
     }
 
     static bindKeyCodes(list) {
-        let unbinds = [],
-            keyPress = new KeyPress();
-        bindKeyCodes(list);
+        let keyPress = new KeyPress();
 
-        function bindKeyCodes(list) {
-            list.forEach(o=> {
-                unbinds.push(keyPress._bindKeyCode.apply(keyPress, o));
-            });
-        }
-        return {
-            unbind: function unbind() {
-                unbinds.forEach(u=>u());
-            },
-            bindKeyCodes: bindKeyCodes,
-            keyPress:     keyPress
-        };
+        list.forEach(args=> {
+            keyPress._bindKeyCodeEvent.apply(keyPress, args);
+        });
+        return keyPress;
     }
 }
 

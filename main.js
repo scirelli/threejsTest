@@ -80,81 +80,62 @@ mainLight.shadow.mapSize.height = 512;
 scene.add(mainLight);
 scene.add(ambientLight);
 
-let f = 100, hasGravity = true,
-    actingForces = {
-        87: [], 65: [], 83: [], 68: [], w: [], a: [], s: [], d: [], q: [], e: []
-    },
-    actingTorques = {e: [], q: [], l: [], j: [], a: [], d: []};
+let f = 100, hasGravity = true;
 
 keyPress
-    .bindKeyChange('w', (state)=> {
-        let angle = box2.physics.GetAngle();
-        keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
-        //keyChange('w', state, box2, new b2Vec2(0, -f));
-        console.debug('w');
+    .onKey('w', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle();
+            keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+        }
     })
-    .bindKeyChange('s', (state)=> {
-        let angle = box2.physics.GetAngle();
-        keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
-        //keyChange('s', state, box2, new b2Vec2(0, f));
-        console.debug('s');
+    .onKey('s', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle();
+            keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
+        }
     })
-    .bindKeyChange('q', (state)=> {
-        keyChange('q', state, box2, new b2Vec2(-f, 0));
-        console.debug('q');
+    .onKey('l', (state)=> {
+        if(state) {
+            turnBox(box2, 'l', state, 80);
+        }
     })
-    .bindKeyChange('e', (state)=> {
-        keyChange('e', state, box2, new b2Vec2(f, 0));
-        console.debug('e');
+    .onKey('d', (state)=> {
+        if(state) {
+            turnBox(box2, 'd', state, 80);
+        }
     })
-    .bindKeyChange('l', (state)=> {
-        turnBox(box2, 'l', state, 80);
+    .onKey('j', (state)=> {
+        if(state) {
+            turnBox(box2, 'j', state, -80);
+        }
     })
-    .bindKeyChange('d', (state)=> {
-        turnBox(box2, 'd', state, 80);
+    .onKey('a', (state)=> {
+        if(state) {
+            turnBox(box2, 'a', state, -80);
+        }
     })
-    .bindKeyChange('j', (state)=> {
-        turnBox(box2, 'j', state, -80);
-    })
-    .bindKeyChange('a', (state)=> {
-        turnBox(box2, 'a', state, -80);
-    })
-    .bindKey('ArrowLeft', (state)=> {
+    .onKey('ArrowLeft', (state)=> {
         if(state) {
             lightBall.position.x = mainLight.position.x -= 0.1;
         }
     })
-    .bindKey('ArrowRight', (state)=> {
+    .onKey('ArrowRight', (state)=> {
         if(state) {
             lightBall.position.x = mainLight.position.x += 0.1;
         }
     })
-    .bindKey('ArrowUp', (state)=> {
+    .onKey('ArrowUp', (state)=> {
         if(state) {
             lightBall.position.y = mainLight.position.y += 0.1;
         }
     })
-    .bindKey('ArrowDown', (state)=> {
+    .onKey('ArrowDown', (state)=> {
         if(state) {
             lightBall.position.y = mainLight.position.y -= 0.1;
         }
     })
-    .bindKey('b', (state)=> {
-        if(state) {
-            let angle = box2.physics.GetAngle(),
-                pos = box2.physics.GetPosition(),
-                force = 100, //Math.randRange(10, 200),
-                impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
-                initVel = box2.physics.GetLinearVelocity(),
-                ball = createBouncyBall(Math.cos(angle)+pos.x, Math.sin(angle)+pos.y, impulseForce, initVel);
-            box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
-            balls.push(ball);
-            setTimeout(()=> {
-                removeBall(ball);
-            }, 2000);
-        }
-    })
-    .bindKey(' ', (state)=> {
+    .onKey(' ', (state)=> {
         if(state) {
             let angle = box2.physics.GetAngle(),
                 pos = box2.physics.GetPosition(),
@@ -170,14 +151,14 @@ keyPress
             }, 2000);
         }
     })
-    .bindKeyPress('g', ()=> {
+    .onKeyPress('g', ()=> {
         hasGravity = !hasGravity;
         if(hasGravity)
             world.SetGravity(gravity);
         else
             world.SetGravity(new b2Vec2(0, 0));
     })
-    .bindKeyPress('r', ()=> {
+    .onKeyPress('r', ()=> {
         box1.physics.SetPosition({x: 0, y: 5});
         box1.physics.SetAngle(0);
         box1.physics.SetLinearVelocity({x: 0, y: 0});
@@ -223,18 +204,15 @@ canvas.addEventListener('click', (evt)=> {
 });
 
 (function animate() {
-    applyActingForces();
+    keyPress.processKeys();
     world.Step(timeStep, iteration);
     world.ClearForces();
 
     let pos = box1Body.GetPosition(),
         angle = box1Body.GetAngle();
-    //floorPos = floorbody.GetPosition();
 
     box1.position.x = pos.x;
     box1.position.y = -pos.y;
-    // box1.rotation.x = angle;
-    // box1.rotation.y = angle;
     box1.rotation.z = -angle;
 
     pos = box2Body.GetPosition();
@@ -242,8 +220,6 @@ canvas.addEventListener('click', (evt)=> {
 
     box2.position.x = pos.x;
     box2.position.y = -pos.y;
-    // box2.rotation.x = angle;
-    // box2.rotation.y = angle;
     box2.rotation.z = -angle;
 
     balls.forEach((b)=> {
@@ -251,8 +227,6 @@ canvas.addEventListener('click', (evt)=> {
             angle = b.physical.GetAngle();
         b.mesh.position.x = pos.x;
         b.mesh.position.y = -pos.y;
-        // b.mesh.rotation.x = angle;
-        // b.mesh.rotation.y = angle;
         b.mesh.rotation.z = -angle;
     });
 
@@ -279,16 +253,6 @@ function resizeCanvas() {
 function keyChange(key, keyState, body, forceVector) {
     if(keyState) {
         body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
-        actingForces[key].push({body, forceVector, atPos: body.physics.GetWorldCenter()});
-    }else{
-        //body.physics.ApplyForce(new b2Vec2(forceVector.x*-1, forceVector.y*-1), body.physics.GetWorldCenter());
-        for(let list = actingForces[key], i=list.length-1, o; i>=0; i--) {
-            o = list[i];
-            if(o.body === body) {
-                list.splice(i, 1);
-                break;
-            }
-        }
     }
 }
 
@@ -297,35 +261,13 @@ function turnBox(body, key, state, force) {
 
     if(state) {
         pbox.ApplyTorque(force);
-        actingTorques[key].push({body, force});
-    }else {
-        for(let list = actingTorques[key], i=list.length-1, o; i>=0; i--) {
-            o = list[i];
-            if(o.body === body) {
-                list.splice(i, 1);
-                break;
-            }
+        if(pbox.GetAngularVelocity() > 3) {
+            pbox.SetAngularVelocity(3);
+        }
+        if(pbox.GetAngularVelocity() < -3) {
+            pbox.SetAngularVelocity(-3);
         }
     }
-}
-
-function applyActingForces() {
-    Object.getOwnPropertyNames(actingForces).forEach(name=> {
-        actingForces[name].forEach(o=> {
-            o.body.physics.ApplyForce(o.forceVector, o.atPos);
-        });
-    });
-    Object.getOwnPropertyNames(actingTorques).forEach(name=> {
-        actingTorques[name].forEach(o=> {
-            o.body.physics.ApplyTorque(o.force);
-            if(o.body.physics.GetAngularVelocity() > 3) {
-                o.body.physics.SetAngularVelocity(3);
-            }
-            if(o.body.physics.GetAngularVelocity() < -3) {
-                o.body.physics.SetAngularVelocity(-3);
-            }
-        });
-    });
 }
 
 function updateCameraPosition() {
@@ -349,7 +291,11 @@ function createBouncyBall(x=0, y=0, impulseForce, initVel) {
 
 function createBallMesh(x=0, y=0) {
     let geometry = new THREE.OctahedronGeometry(1, 2),
-        texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
+        texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg', function(texture) {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.offset.set(0, 0);
+            texture.repeat.set(4, 4);
+        }),
         material = new THREE.MeshStandardMaterial({
             'map':       texture,
             'roughness': 0.8
@@ -401,6 +347,7 @@ function createWallMesh(pos, dim) {
         }),
         depth = 6,
         wall = new THREE.Mesh(new THREE.BoxGeometry(dim.width, dim.height, depth), material);
+
     wall.castShadow = true;
     wall.receiveShadow = true;
     wall.position.y = pos.y;
