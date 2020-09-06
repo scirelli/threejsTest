@@ -22,6 +22,10 @@ const renderer = new THREE.WebGLRenderer(),
     container = document.body.querySelector('#main-container'),
 
     texture = new THREE.TextureLoader().load('textures/checker/redwhite.jpg'),
+    spaceshipMaterial = new THREE.MeshStandardMaterial({
+        'map':       new THREE.TextureLoader().load('textures/spaceships/arrow_thing.png'),
+        'roughness': 0.8
+    }),
     material = new THREE.MeshStandardMaterial({
         'map':       texture,
         'roughness': 0.8
@@ -31,7 +35,7 @@ const renderer = new THREE.WebGLRenderer(),
     leftWall = createWall({x: -24, y: 0}, {width: 0.5, height: 20}),
     rightWall = createWall({x: 24, y: 0}, {width: 0.5, height: 20}),
     box1  = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 4), material),
-    box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), material),
+    box2  = new THREE.Mesh(new THREE.BoxGeometry(4, 2, 2), spaceshipMaterial),
     lightBall = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 2), new THREE.MeshBasicMaterial({color: 0xFFFFFF})),
     rayCaster = new THREE.Raycaster(),
     keyPress = new KeyPress(window);
@@ -78,9 +82,9 @@ scene.add(ambientLight);
 
 let f = 100, hasGravity = true,
     actingForces = {
-        87: [], 65: [], 83: [], 68: [], w: [], a: [], s: [], d: []
+        87: [], 65: [], 83: [], 68: [], w: [], a: [], s: [], d: [], q: [], e: []
     },
-    actingTorques = {e: [], q: [], l: [], j: []};
+    actingTorques = {e: [], q: [], l: [], j: [], a: [], d: []};
 
 keyPress
     .bindKeyChange('w', (state)=> {
@@ -104,16 +108,16 @@ keyPress
         console.debug('e');
     })
     .bindKeyChange('l', (state)=> {
-        turnBox(box2, 'l', state, 20);
+        turnBox(box2, 'l', state, 80);
     })
     .bindKeyChange('d', (state)=> {
-        turnBox(box2, 'd', state, 10);
+        turnBox(box2, 'd', state, 80);
     })
     .bindKeyChange('j', (state)=> {
-        turnBox(box2, 'j', state, -20);
+        turnBox(box2, 'j', state, -80);
     })
     .bindKeyChange('a', (state)=> {
-        turnBox(box2, 'a', state, -10);
+        turnBox(box2, 'a', state, -80);
     })
     .bindKey('ArrowLeft', (state)=> {
         if(state) {
@@ -314,6 +318,12 @@ function applyActingForces() {
     Object.getOwnPropertyNames(actingTorques).forEach(name=> {
         actingTorques[name].forEach(o=> {
             o.body.physics.ApplyTorque(o.force);
+            if(o.body.physics.GetAngularVelocity() > 3) {
+                o.body.physics.SetAngularVelocity(3);
+            }
+            if(o.body.physics.GetAngularVelocity() < -3) {
+                o.body.physics.SetAngularVelocity(-3);
+            }
         });
     });
 }
