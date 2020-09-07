@@ -1,9 +1,6 @@
 'use strict';
 
 class KeyPress{
-    static DOWN = true;
-    static UP = false;
-
     constructor(oElm) {
         this.elm = oElm;
         this.oKeyCodeStates = {};
@@ -163,6 +160,8 @@ class KeyPress{
         return keyPress;
     }
 }
+KeyPress.DOWN = true;
+KeyPress.UP = false;
 
 function BindKeyWord(oElm, nTimeMS) {
     this.setElement(oElm);
