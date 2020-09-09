@@ -30,10 +30,29 @@
             user-select: none;
             transition-duration: 0.2s;
         }
+
+        #console {
+            display: none;
+            position: fixed;
+            width: 320px;
+            height: 170px;
+            margin-top: -178px;
+            border: 4px ridge;
+        }
+        #console textarea {
+            background-color: #3A3A3AEE;
+            color: #99FF99;
+            width: 98%;
+            height: 97%;
+            resize: none;
+        }
     </style>
     </head>
     <body>
        <div id="main-container" class="main-container"></div>
+       <footer>
+           <div id="console"><textarea id="text" readonly></textarea></div>
+       </footer>
        <script src="main.cls.js"></script>
     </body>
 </html>
