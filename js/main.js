@@ -40,7 +40,6 @@ const gravity = new b2Vec2(0.0, 0.0),
     DO_SLEEP = true,
     //DEGTORAD = 0.0174533,
     translate = {x: 0, y: 0},
-    f = 100,
     scale = 25,
     timeStep = 1.0/60,
     iteration = 1,
@@ -54,6 +53,7 @@ const gravity = new b2Vec2(0.0, 0.0),
     ambientLight = new AmbientLight(0xF0F0F0, 0.5),
 
     container = document.body.querySelector('#main-container'),
+    debugOutput = document.body.querySelector('#console textarea'),
 
     spaceshipMaterial = new MeshStandardMaterial({
         'map':       new TextureLoader().load('textures/spaceships/arrow_thing.png'),
@@ -63,20 +63,23 @@ const gravity = new b2Vec2(0.0, 0.0),
         'map':       new TextureLoader().load('textures/checker/redwhite.jpg'),
         'roughness': 0.8
     }),
-    floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
-    ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
-    leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
-    rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
-    box1      = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
-    box2      = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
-    lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
     rayCaster = new Raycaster();
 
 let canvas,
     balls = [],
     keyPress = null,
     cameraMaximumDimension = 1,
-    hasGravity = true;
+    hasGravity = true,
+    playerForce = 802,
+    boostMultipier = 1.5;
+
+const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
+    ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
+    leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
+    rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
+    box1      = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
+    playerOne      = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
+    lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF}));
 
 scene.add(ceiling);
 scene.add(floor);
@@ -84,7 +87,7 @@ scene.add(leftWall);
 scene.add(rightWall);
 box1.physics.SetFixedRotation(false);
 scene.add(box1);
-scene.add(box2);
+scene.add(playerOne);
 scene.add(lightBall);
 
 camera.zoom = 0.3;
@@ -125,65 +128,76 @@ loader.load(
     }
 );
 
+if(window.location.search.indexOf('debug') !== -1) {
+    document.body.querySelector('#console').style.display = 'inline-block';
+}
+console.debug = (()=>{
+    let oldDebug = console.debug;
+
+    return (...args)=> {
+        debugOutput.value = args.join('\n') + '\n' + debugOutput.value;
+        oldDebug.apply(console, args);
+    };
+})();
 
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
         if(state) {
-            let pbox = box2.physics,
+            let pbox = playerOne.physics,
                 angle = pbox.GetAngle();
             if(keyPress.getKeyState('ShiftLeft')) {
-                keyChange(state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
+                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce*boostMultipier, Math.sin(angle)*playerForce*boostMultipier));
             }else{
-                keyChange(state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce, Math.sin(angle)*playerForce));
             }
         }
     }],
     ['onKey', 'KeyS', (state)=> {
         if(state) {
-            let angle = box2.physics.GetAngle();
+            let angle = playerOne.physics.GetAngle();
 
             if(keyPress.getKeyState('ShiftLeft')) {
-                keyChange(state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f));
+                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*-playerForce*10, Math.sin(angle)*-playerForce));
             }else{
-                keyChange(state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
+                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*-playerForce, Math.sin(angle)*-playerForce));
             }
         }
     }],
     ['onKey', 'KeyL', (state)=> {
         if(state) {
-            turnBox(box2, 1*0.1);
+            turnBox(playerOne, 1*0.1);
         }
     }],
     ['onKey', 'KeyD', (state)=> {
         if(state) {
-            turnBox(box2, 1*0.1);
+            turnBox(playerOne, 1*0.1);
         }
     }],
     ['onKey', 'KeyJ', (state)=> {
         if(state) {
-            turnBox(box2, -1*0.1);
+            turnBox(playerOne, -1*0.1);
         }
     }],
     ['onKey', 'KeyA', (state)=> {
         if(state) {
-            turnBox(box2, -1*0.1);
+            turnBox(playerOne, -1*0.1);
         }
     }],
     ['onKey', 'KeyI', (state)=> {
         if(state) {
-            if(performance.now() - box2.physics.lastBurst > (2.0*1000)) {
-                let angle = box2.physics.GetAngle();
-                box2.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10), box2.physics.GetWorldCenter());
-                box2.physics.lastBurst = performance.now();
+            if(performance.now() - playerOne.physics.lastBurst > (2.0*1000)) {
+                let angle = playerOne.physics.GetAngle();
+                playerOne.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*playerForce*boostMultipier, Math.sin(angle)*playerForce*boostMultipier), playerOne.physics.GetWorldCenter());
+                playerOne.physics.lastBurst = performance.now();
             }
         }
     }],
     ['onKey', 'KeyK', (state)=> {
         if(state) {
-            if(performance.now() - box2.physics.lastBurst > (2.0*1000)) {
-                let angle = box2.physics.GetAngle();
-                box2.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10), box2.physics.GetWorldCenter());
-                box2.physics.lastBurst = performance.now();
+            if(performance.now() - playerOne.physics.lastBurst > (2.0*1000)) {
+                let angle = playerOne.physics.GetAngle();
+                playerOne.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*-playerForce*boostMultipier, Math.sin(angle)*-playerForce*boostMultipier), playerOne.physics.GetWorldCenter());
+                playerOne.physics.lastBurst = performance.now();
             }
         }
     }],
@@ -209,18 +223,52 @@ keyPress = KeyPress.bindKeys([
     }],
     ['onKey', 'Space', (state)=> {
         if(state) {
-            if(performance.now() - box2.physics.lastFired > (0.6*1000)) {
+            if(performance.now() - playerOne.physics.lastFired > (0.6*1000)) {
                 fireBullet();
             }
         }
     }],
     ['onKey', 'KeyP', (state)=> {
         if(state) {
-            if(performance.now() - box2.physics.lastFired > (0.0*1000)) {
+            if(performance.now() - playerOne.physics.lastFired > (0.0*1000)) {
                 fireBullet();
             }
         }
     }],
+    ['onKey', 'Equal', (()=>{
+        let repeatTime = 200,
+            lastRepeatTime = performance.now();
+        return (state)=> {
+            if(!state) return;
+            if((performance.now() - lastRepeatTime) > repeatTime) {
+                if(keyPress.getKeyState('ShiftLeft') && keyPress.getKeyState('KeyF')) {
+                    playerForce += 1;
+                    console.debug(`Force: ${playerForce}`);
+                } else if(keyPress.getKeyState('ControlRight') && keyPress.getKeyState('KeyF')) {
+                    playerOne.physics.SetLinearDamping(playerOne.physics.GetLinearDamping() + 1);
+                    console.debug(`Force Dampening: ${playerOne.physics.GetLinearDamping()}`);
+                }
+                lastRepeatTime = performance.now();
+            }
+        };
+    })()],
+    ['onKey', 'Minus', (()=>{
+        let repeatTime = 200,
+            lastRepeatTime = performance.now();
+        return (state)=> {
+            if(!state) return;
+            if((performance.now() - lastRepeatTime) > repeatTime) {
+                if(keyPress.getKeyState('ShiftLeft') && keyPress.getKeyState('KeyF')) {
+                    playerForce -= 1;
+                    console.debug(`Force: ${playerForce}`);
+                }else if(keyPress.getKeyState('ControlRight') && keyPress.getKeyState('KeyF')) {
+                    playerOne.physics.SetLinearDamping(playerOne.physics.GetLinearDamping() - 1);
+                    console.debug(`Force Dampening: ${playerOne.physics.GetLinearDamping()}`);
+                }
+                lastRepeatTime = performance.now();
+            }
+        };
+    })()],
     ['onKeyPress', 'KeyG', ()=> {
         hasGravity = !hasGravity;
         if(hasGravity)
@@ -234,10 +282,10 @@ keyPress = KeyPress.bindKeys([
         box1.physics.SetLinearVelocity({x: 0, y: 0});
         box1.physics.SetAngularVelocity();
 
-        box2.physics.SetPosition({x: 0, y: 0});
-        box2.physics.SetAngle(0);
-        box2.physics.SetLinearVelocity({x: 0, y: 0});
-        box2.physics.SetAngularVelocity();
+        playerOne.physics.SetPosition({x: 0, y: 0});
+        playerOne.physics.SetAngle(0);
+        playerOne.physics.SetLinearVelocity({x: 0, y: 0});
+        playerOne.physics.SetAngularVelocity();
 
         let b;
         while(b = balls.pop()) { //eslint-disable-line no-cond-assign
@@ -286,12 +334,12 @@ canvas.addEventListener('click', (evt)=> {
     box1.position.y = -pos.y;
     box1.rotation.z = -angle;
 
-    pos = box2.physics.GetPosition();
-    angle = box2.physics.GetAngle();
+    pos = playerOne.physics.GetPosition();
+    angle = playerOne.physics.GetAngle();
 
-    box2.position.x = pos.x;
-    box2.position.y = -pos.y;
-    box2.rotation.z = -angle;
+    playerOne.position.x = pos.x;
+    playerOne.position.y = -pos.y;
+    playerOne.rotation.z = -angle;
 
     balls.forEach((b)=> {
         let pos = b.physics.GetPosition(),
@@ -358,25 +406,8 @@ function createBouncyBall(x=0, y=0, impulseForce, initVel) {
     return mesh;
 }
 
-function fireBullet() {
-    let angle = box2.physics.GetAngle(),
-        pos = box2.physics.GetPosition(),
-        force = f, //Math.randRange(10, 200),
-        impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
-        initVel = box2.physics.GetLinearVelocity(),
-        ball = createBullet({x: Math.cos(angle)+pos.x, y: Math.sin(angle)+pos.y}, {width: 0.5, height: 0.5, depth: 0.5}, impulseForce, initVel);
-
-    box2.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), box2.physics.GetWorldCenter());
-    scene.add(ball);
-    balls.push(ball);
-    setTimeout(()=> {
-        removeBall(ball);
-    }, 2000);
-    box2.physics.lastFired = performance.now();
-}
-
 function createBallMesh(x=0, y=0) {
-    let geometry = new OctahedronGeometry(1, 2),
+    let geometry = new OctahedronGeometry(2, 2),
         texture = new TextureLoader().load('textures/checker/redwhite.jpg', function(texture) {
             texture.wrapS = texture.wrapT = RepeatWrapping;
             texture.offset.set(0, 0);
@@ -398,12 +429,12 @@ function createBallMesh(x=0, y=0) {
 }
 
 function createBallPhysics(x=0, y=0, impulseForce, initVel) {
-    let circleShape = new b2CircleShape(1),
+    let circleShape = new b2CircleShape(2),
         circleFixtureDef = new b2FixtureDef(),
         circleBdDef = new b2BodyDef();
 
     circleFixtureDef.shape = circleShape;
-    circleFixtureDef.density = 1.0;
+    circleFixtureDef.density = 0.5;
     circleFixtureDef.friction = Math.randRange(0.5, 1);
     circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
 
@@ -418,6 +449,23 @@ function createBallPhysics(x=0, y=0, impulseForce, initVel) {
         ballbody.ApplyImpulse(impulseForce, ballbody.GetWorldCenter());
     }
     return ballbody;
+}
+
+function fireBullet() {
+    let angle = playerOne.physics.GetAngle(),
+        pos = playerOne.physics.GetPosition(),
+        force = playerForce, //Math.randRange(10, 200),
+        impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
+        initVel = playerOne.physics.GetLinearVelocity(),
+        ball = createBullet({x: Math.cos(angle)+pos.x, y: Math.sin(angle)+pos.y}, {width: 0.5, height: 0.5, depth: 0.5}, impulseForce, initVel);
+
+    playerOne.physics.ApplyImpulse(new b2Vec2(impulseForce.x*-0.5, impulseForce.y*-0.5), playerOne.physics.GetWorldCenter());
+    scene.add(ball);
+    balls.push(ball);
+    setTimeout(()=> {
+        removeBall(ball);
+    }, 2000);
+    playerOne.physics.lastFired = performance.now();
 }
 
 function createBullet(pos, dim, impulseForce, initVel) {
@@ -494,7 +542,7 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    playerBodyDef.linearDamping = f/1000;
+    playerBodyDef.linearDamping = playerForce/1000;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
     playerBody.SetFixedRotation(true);

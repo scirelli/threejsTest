@@ -67,9 +67,9 @@ class KeyPress{
         let keyCode = evnt[this.keyType];
 
         if(state) {
-            console.debug(keyCode + ' ▲');
-        }else{
             console.debug(keyCode + ' ▼');
+        }else{
+            console.debug(keyCode + ' ▲');
         }
 
         if(this.oStates[keyCode] !== state) {
