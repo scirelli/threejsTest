@@ -127,84 +127,64 @@ loader.load(
 
 
 keyPress = KeyPress.bindKeys([
-    ['onKey', 'w', (state)=> {
+    ['onKey', 'KeyW', (state, code, keyPress)=> {
         if(state) {
             let pbox = box2.physics,
                 angle = pbox.GetAngle();
-            keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+            if(keyPress.getKeyState('ShiftLeft')) {
+                keyChange(state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
+            }else{
+                keyChange(state, box2, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+            }
+        }
+    }],
+    ['onKey', 'KeyS', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle();
 
-            // let vel = pbox.GetLinearVelocity(),
-            //     velAngle = Math.atan2(vel.y, vel.x),
-            //     da = velAngle - angle;
-
-            // if(da > velAngle) {
-            //     turnBox(box2, -1000 * (da/velAngle));
-            // }
-            // if(da > velAngle) {
-            //     turnBox(box2, 1000 * (da/velAngle));
-            // }
+            if(keyPress.getKeyState('ShiftLeft')) {
+                keyChange(state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f));
+            }else{
+                keyChange(state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
+            }
         }
     }],
-    ['onKey', 's', (state)=> {
-        if(state) {
-            let angle = box2.physics.GetAngle();
-            keyChange('w', state, box2, new b2Vec2(Math.cos(angle)*-f, Math.sin(angle)*-f));
-        }
-    }],
-    ['onKey', 'l', (state)=> {
+    ['onKey', 'KeyL', (state)=> {
         if(state) {
             turnBox(box2, 1*0.1);
         }
     }],
-    ['onKey', 'd', (state)=> {
+    ['onKey', 'KeyD', (state)=> {
         if(state) {
             turnBox(box2, 1*0.1);
         }
     }],
-    ['onKey', 'D', (state)=> {
-        if(state) {
-            turnBox(box2, 1*0.1);
-        }
-    }],
-    ['onKey', 'j', (state)=> {
+    ['onKey', 'KeyJ', (state)=> {
         if(state) {
             turnBox(box2, -1*0.1);
         }
     }],
-    ['onKey', 'a', (state)=> {
+    ['onKey', 'KeyA', (state)=> {
         if(state) {
             turnBox(box2, -1*0.1);
         }
     }],
-    ['onKey', 'A', (state)=> {
+    ['onKey', 'KeyI', (state)=> {
         if(state) {
-            turnBox(box2, -1*0.1);
+            if(performance.now() - box2.physics.lastBurst > (2.0*1000)) {
+                let angle = box2.physics.GetAngle();
+                box2.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10), box2.physics.GetWorldCenter());
+                box2.physics.lastBurst = performance.now();
+            }
         }
     }],
-    ['onKey', 'i', (state)=> {
+    ['onKey', 'KeyK', (state)=> {
         if(state) {
-            let pbox = box2.physics,
-                angle = pbox.GetAngle();
-            keyChange('i', state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
-        }
-    }],
-    ['onKey', 'k', (state)=> {
-        if(state) {
-            let angle = box2.physics.GetAngle();
-            keyChange('k', state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10));
-        }
-    }],
-    ['onKey', 'W', (state)=> {
-        if(state) {
-            let pbox = box2.physics,
-                angle = pbox.GetAngle();
-            keyChange('W', state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
-        }
-    }],
-    ['onKey', 'S', (state)=> {
-        if(state) {
-            let angle = box2.physics.GetAngle();
-            keyChange('S', state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10));
+            if(performance.now() - box2.physics.lastBurst > (2.0*1000)) {
+                let angle = box2.physics.GetAngle();
+                box2.physics.ApplyImpulse(new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10), box2.physics.GetWorldCenter());
+                box2.physics.lastBurst = performance.now();
+            }
         }
     }],
     ['onKey', 'ArrowLeft', (state)=> {
@@ -227,28 +207,28 @@ keyPress = KeyPress.bindKeys([
             lightBall.position.y = mainLight.position.y -= 0.1;
         }
     }],
-    ['onKey', ' ', (state)=> {
+    ['onKey', 'Space', (state)=> {
         if(state) {
             if(performance.now() - box2.physics.lastFired > (0.6*1000)) {
                 fireBullet();
             }
         }
     }],
-    ['onKey', 'p', (state)=> {
+    ['onKey', 'KeyP', (state)=> {
         if(state) {
             if(performance.now() - box2.physics.lastFired > (0.0*1000)) {
                 fireBullet();
             }
         }
     }],
-    ['onKeyPress', 'g', ()=> {
+    ['onKeyPress', 'KeyG', ()=> {
         hasGravity = !hasGravity;
         if(hasGravity)
             world.SetGravity(gravity);
         else
             world.SetGravity(new b2Vec2(0, 0));
     }],
-    ['onKeyPress', 'r', ()=> {
+    ['onKeyPress', 'KeyR', ()=> {
         box1.physics.SetPosition({x: 0, y: 5});
         box1.physics.SetAngle(0);
         box1.physics.SetLinearVelocity({x: 0, y: 0});
@@ -342,10 +322,8 @@ function resizeCanvas() {
     updateCameraPosition();
 }
 
-function keyChange(key, keyState, body, forceVector) {
-    if(keyState) {
-        body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
-    }
+function keyChange(keyState, body, forceVector) {
+    body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
 }
 
 function turnBox(body, force) {
@@ -521,6 +499,7 @@ function createPlayerPhysics(pos, dim) {
     playerBody.CreateFixture(playerFixtureDef);
     playerBody.SetFixedRotation(true);
     playerBody.lastFired = performance.now();
+    playerBody.lastBurst = performance.now();
 
     return playerBody;
 }
