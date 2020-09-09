@@ -141,8 +141,8 @@ class KeyPress{
         };
     }
 
-    static bindKeys(list) {
-        let keyPress = new KeyPress();
+    static bindKeys(list, oElm=window) {
+        let keyPress = new KeyPress(oElm);
 
         list.forEach(args=> {
             keyPress._bindKeyEvent.apply(keyPress, args);
