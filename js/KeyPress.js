@@ -78,6 +78,7 @@ class KeyPress{
 
     _onKeyDown(evnt) {
         this._keyActivity(evnt, KeyPress.DOWN);
+        console.debug(evnt.key + '▼');
     }
 
     _onKeyUp(evnt) {
@@ -95,6 +96,7 @@ class KeyPress{
         }
 
         this._keyActivity(evnt, KeyPress.UP);
+        console.debug(evnt.key + '▲');
     }
 
     _keyActivity(evnt, state) {

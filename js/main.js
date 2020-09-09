@@ -36,9 +36,14 @@ import {
 
 import { KeyPress } from './KeyPress.js';
 
-const gravity = new b2Vec2(0.0, 10.0),
+const gravity = new b2Vec2(0.0, 0.0),
     DO_SLEEP = true,
     //DEGTORAD = 0.0174533,
+    translate = {x: 0, y: 0},
+    f = 100,
+    scale = 25,
+    timeStep = 1.0/60,
+    iteration = 1,
     world = new b2World(gravity, DO_SLEEP),
     renderer = new WebGLRenderer(),
     //loader = new TDSLoader(),
@@ -62,19 +67,16 @@ const gravity = new b2Vec2(0.0, 10.0),
     ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
     leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
-    box1  = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
-    box2  = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
+    box1      = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
+    box2      = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
     rayCaster = new Raycaster();
 
-let translate = {x: 0, y: 0},
-    scale = 25,
-    cameraMaximumDimension = 1,
-    timeStep = 1.0/60,
-    iteration = 1,
-    canvas,
+let canvas,
     balls = [],
-    keyPress = null;
+    keyPress = null,
+    cameraMaximumDimension = 1,
+    hasGravity = true;
 
 scene.add(ceiling);
 scene.add(floor);
@@ -123,7 +125,6 @@ loader.load(
     }
 );
 
-let f = 100, hasGravity = true;
 
 keyPress = KeyPress.bindKeys([
     ['onKey', 'w', (state)=> {
@@ -160,12 +161,22 @@ keyPress = KeyPress.bindKeys([
             turnBox(box2, 1*0.1);
         }
     }],
+    ['onKey', 'D', (state)=> {
+        if(state) {
+            turnBox(box2, 1*0.1);
+        }
+    }],
     ['onKey', 'j', (state)=> {
         if(state) {
             turnBox(box2, -1*0.1);
         }
     }],
     ['onKey', 'a', (state)=> {
+        if(state) {
+            turnBox(box2, -1*0.1);
+        }
+    }],
+    ['onKey', 'A', (state)=> {
         if(state) {
             turnBox(box2, -1*0.1);
         }
@@ -181,6 +192,19 @@ keyPress = KeyPress.bindKeys([
         if(state) {
             let angle = box2.physics.GetAngle();
             keyChange('k', state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10));
+        }
+    }],
+    ['onKey', 'W', (state)=> {
+        if(state) {
+            let pbox = box2.physics,
+                angle = pbox.GetAngle();
+            keyChange('W', state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
+        }
+    }],
+    ['onKey', 'S', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle();
+            keyChange('S', state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10));
         }
     }],
     ['onKey', 'ArrowLeft', (state)=> {
@@ -492,6 +516,7 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
+    playerBodyDef.linearDamping = f/1000;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
     playerBody.SetFixedRotation(true);
