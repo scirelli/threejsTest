@@ -58,10 +58,10 @@ const gravity = new b2Vec2(0.0, 10.0),
         'map':       new TextureLoader().load('textures/checker/redwhite.jpg'),
         'roughness': 0.8
     }),
-    floor     = createWall({x: 0*2, y:  80}, {width:  110, height: 0.5, depth: 6}),
-    ceiling   = createWall({x: 0*2, y: -80}, {width:  110, height: 0.5, depth: 6}),
-    leftWall  = createWall({x: -109.728, y:   0}, {width: 0.5, height:  80, depth: 6}),
-    rightWall = createWall({x:  109.728, y:   0}, {width: 0.5, height:  80, depth: 6}),
+    floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
+    ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
+    leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
+    rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     box1  = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
     box2  = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
@@ -168,6 +168,19 @@ keyPress = KeyPress.bindKeys([
     ['onKey', 'a', (state)=> {
         if(state) {
             turnBox(box2, -1*0.1);
+        }
+    }],
+    ['onKey', 'i', (state)=> {
+        if(state) {
+            let pbox = box2.physics,
+                angle = pbox.GetAngle();
+            keyChange('i', state, box2, new b2Vec2(Math.cos(angle)*f*10, Math.sin(angle)*f*10));
+        }
+    }],
+    ['onKey', 'k', (state)=> {
+        if(state) {
+            let angle = box2.physics.GetAngle();
+            keyChange('k', state, box2, new b2Vec2(Math.cos(angle)*-f*10, Math.sin(angle)*-f*10));
         }
     }],
     ['onKey', 'ArrowLeft', (state)=> {
@@ -346,7 +359,7 @@ function createBouncyBall(x=0, y=0, impulseForce, initVel) {
 function fireBullet() {
     let angle = box2.physics.GetAngle(),
         pos = box2.physics.GetPosition(),
-        force = 100, //Math.randRange(10, 200),
+        force = f, //Math.randRange(10, 200),
         impulseForce = new b2Vec2(Math.cos(angle)*force, Math.sin(angle)*force),
         initVel = box2.physics.GetLinearVelocity(),
         ball = createBullet({x: Math.cos(angle)+pos.x, y: Math.sin(angle)+pos.y}, {width: 0.5, height: 0.5, depth: 0.5}, impulseForce, initVel);
