@@ -36,6 +36,10 @@ import {
 
 import { KeyPress } from './KeyPress.js';
 
+Math.randRange = function(min, max) {
+    return (Math.random() * (max - min)) + min;
+};
+
 const gravity = new b2Vec2(0.0, 0.0),
     DO_SLEEP = true,
     //DEGTORAD = 0.0174533,
@@ -71,6 +75,7 @@ let canvas,
     cameraMaximumDimension = 1,
     hasGravity = true,
     playerForce = 802,
+    playerAngularForce = 400,
     boostMultipier = 1.5;
 
 const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
@@ -78,9 +83,10 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     box1      = createPlayer({x: 0, y: 5}, {width: 4, height: 1, depth: 4}, material), //new Mesh(new BoxGeometry(8, 2, 4), material),
-    playerOne      = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
+    playerOne = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF}));
 
+balls.push(createBouncyBall(0, -4));
 scene.add(ceiling);
 scene.add(floor);
 scene.add(leftWall);
@@ -143,8 +149,7 @@ console.debug = (()=>{
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
         if(state) {
-            let pbox = playerOne.physics,
-                angle = pbox.GetAngle();
+            let angle = playerOne.physics.GetAngle();
             if(keyPress.getKeyState('ShiftLeft')) {
                 keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce*boostMultipier, Math.sin(angle)*playerForce*boostMultipier));
             }else{
@@ -165,22 +170,22 @@ keyPress = KeyPress.bindKeys([
     }],
     ['onKey', 'KeyL', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*0.1);
+            turnBox(playerOne, 1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyD', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*0.1);
+            turnBox(playerOne, 1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyJ', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*0.1);
+            turnBox(playerOne, -1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyA', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*0.1);
+            turnBox(playerOne, -1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyI', (state)=> {
@@ -285,7 +290,7 @@ keyPress = KeyPress.bindKeys([
         playerOne.physics.SetPosition({x: 0, y: 0});
         playerOne.physics.SetAngle(0);
         playerOne.physics.SetLinearVelocity({x: 0, y: 0});
-        playerOne.physics.SetAngularVelocity();
+        playerOne.physics.SetAngularVelocity(0);
 
         let b;
         while(b = balls.pop()) { //eslint-disable-line no-cond-assign
@@ -377,9 +382,10 @@ function keyChange(keyState, body, forceVector) {
 function turnBox(body, force) {
     let pbox = body.physics;
 
-    pbox.SetAngle(pbox.GetAngle() + force);
-    pbox.SetAngularVelocity(0);
-    //pbox.ApplyTorque(force);
+    //pbox.SetAngle(pbox.GetAngle() + force);
+    //pbox.SetAngularVelocity(0);
+    pbox.ApplyTorque(force);
+    console.debug(`Angular Velocity: ${pbox.GetAngularVelocity()}`);
     // if(pbox.GetAngularVelocity() > 3) {
     //     pbox.SetAngularVelocity(3);
     // }
@@ -543,9 +549,10 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
     playerBodyDef.linearDamping = playerForce/1000;
+    playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
-    playerBody.SetFixedRotation(true);
+    //playerBody.SetFixedRotation(true);
     playerBody.lastFired = performance.now();
     playerBody.lastBurst = performance.now();
 
@@ -603,7 +610,3 @@ function createWallPhysics(pos, dim) {
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
 }
-
-Math.randRange = function(min, max) {
-    return (Math.random() * (max - min)) + min;
-};
