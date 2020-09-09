@@ -3,6 +3,7 @@ java -jar ./node_modules/google-closure-compiler-java/compiler.jar \
     --js_module_root './' \
     --js node_modules/three/build/three.module.js \
     --js node_modules/three/examples/jsm/loaders/TDSLoader.js \
+    --js node_modules/three/examples/jsm/loaders/OBJLoader.js \
     --js js/**/*.js \
     --js js/*.js \
     --externs \
