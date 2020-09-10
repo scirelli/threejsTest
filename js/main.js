@@ -285,6 +285,9 @@ keyPress = KeyPress.bindKeys([
             }
         };
     })()],
+    ['onKeyPress', 'Backquote', ()=> {
+        document.body.querySelector('#console').style.display = 'inline-block';
+    }],
     ['onKeyPress', 'KeyG', ()=> {
         hasGravity = !hasGravity;
         if(hasGravity)
@@ -387,7 +390,9 @@ function resizeCanvas() {
 }
 
 function keyChange(keyState, body, forceVector) {
+    let vel = body.physics.GetLinearVelocity();
     body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
+    console.debug(`Linear Vel: (${vel.x}, ${vel.y})`);
 }
 
 function turnBox(body, force) {
@@ -396,7 +401,7 @@ function turnBox(body, force) {
     //pbox.SetAngle(pbox.GetAngle() + force);
     //pbox.SetAngularVelocity(0);
     pbox.ApplyTorque(force);
-    console.debug(`Angular Velocity: ${pbox.GetAngularVelocity()}`);
+    //console.debug(`Angular Velocity: ${pbox.GetAngularVelocity()}`);
     // if(pbox.GetAngularVelocity() > 3) {
     //     pbox.SetAngularVelocity(3);
     // }
