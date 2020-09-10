@@ -141,7 +141,7 @@ console.debug = (()=>{
     let oldDebug = console.debug;
 
     return (...args)=> {
-        debugOutput.value = args.join('\n') + '\n' + debugOutput.value;
+        debugOutput.value = args.join('\n') + '\n' + debugOutput.value.substring(0, 512);
         oldDebug.apply(console, args);
     };
 })();
