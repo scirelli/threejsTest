@@ -39,9 +39,10 @@ import { KeyPress } from './KeyPress.js';
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
 };
+const DO_SLEEP = true;
+//HALF_PI = Math.PI/2;
 
 const gravity = new b2Vec2(0.0, 0.0),
-    DO_SLEEP = true,
     //DEGTORAD = 0.0174533,
     translate = {x: 0, y: 0},
     scale = 25,
@@ -153,7 +154,17 @@ keyPress = KeyPress.bindKeys([
             if(keyPress.getKeyState('ShiftLeft')) {
                 keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce*boostMultipier, Math.sin(angle)*playerForce*boostMultipier));
             }else{
-                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce, Math.sin(angle)*playerForce));
+                let vForce = new b2Vec2(Math.cos(angle)*playerForce, Math.sin(angle)*playerForce),
+                    magForce = Math.sqrt(vForce.x*vForce.x + vForce.y*vForce.y),
+                    unitForce = new b2Vec2(vForce.x/magForce, vForce.y/magForce),
+                    perpForce = new b2Vec2(-unitForce.y, unitForce.x), //Rotate by ㄫ/2
+                    magPerpForce = Math.sqrt(perpForce.x*perpForce.x + perpForce.y*perpForce.y),
+                    vVel = playerOne.physics.GetLinearVelocity(),
+                    cVel = (perpForce.x*vVel.x + perpForce.y*vVel.y)/magPerpForce, //component of vVel in direction of a vectory perpendicular to vForce
+                    dampForce = new b2Vec2(-unitForce.x*cVel, -unitForce.y*cVel),
+                    newForce = new b2Vec2(vForce.x+dampForce.x, vForce.y+dampForce.y);
+
+                keyChange(state, playerOne, newForce);
             }
         }
     }],
@@ -610,3 +621,7 @@ function createWallPhysics(pos, dim) {
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
 }
+
+// function rotate(vector, angle) {
+//     return new b2Vec2(vector.x*Math.cos(angle) + vector.y*(-Math.sin(angle)), vector.x*Math.sin(angle) + vector.y*Math.cos(angle));
+// }
