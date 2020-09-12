@@ -10876,6 +10876,10 @@ const Collision =        Box2D.Collision,
     b2PolygonShape =     Box2D.Collision.Shapes.b2PolygonShape,
     Common =             Box2D.Common,
     b2Vec2 =             Box2D.Common.Math.b2Vec2,
+    Dot =                Box2D.Common.Math.b2Math.Dot,
+    CrossVV =            Box2D.Common.Math.b2Math.CrossVV,
+    CrossVF =            Box2D.Common.Math.b2Math.CrossVF,
+    CrossFV =            Box2D.Common.Math.b2Math.CrossFV,
     Dynamics =           Box2D.Dynamics,
     Contacts =           Box2D.Dynamics.Contacts,
     Controllers=         Box2D.Dynamics.Controllers,
@@ -10902,5 +10906,9 @@ export {
     b2Body,
     b2BodyDef,
     Joints,
-    b2RevoluteJointDef
+    b2RevoluteJointDef,
+    Dot,
+    CrossVV,
+    CrossVF,
+    CrossFV
 };

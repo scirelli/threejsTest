@@ -32,6 +32,8 @@ import {
     b2FixtureDef,
     b2BodyDef,
     b2PolygonShape
+    // Dot,
+    // CrossVV
 } from './box2d/Box2D.js';
 
 import { KeyPress } from './KeyPress.js';
@@ -136,7 +138,7 @@ loader.load(
 );
 
 if(window.location.search.indexOf('debug') !== -1) {
-    document.body.querySelector('#console').style.display = 'inline-block';
+    document.body.querySelector('#console').classList.toggle('open');
 }
 console.debug = (()=>{
     let oldDebug = console.debug;
@@ -149,23 +151,22 @@ console.debug = (()=>{
 
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
+        /*
+         CrossVV(vForce, vVel)
+         */
         if(state) {
-            let angle = playerOne.physics.GetAngle();
-            if(keyPress.getKeyState('ShiftLeft')) {
-                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*playerForce*boostMultipier, Math.sin(angle)*playerForce*boostMultipier));
-            }else{
-                let vForce = new b2Vec2(Math.cos(angle)*playerForce, Math.sin(angle)*playerForce),
-                    magForce = Math.sqrt(vForce.x*vForce.x + vForce.y*vForce.y),
-                    unitForce = new b2Vec2(vForce.x/magForce, vForce.y/magForce),
-                    perpForce = new b2Vec2(-unitForce.y, unitForce.x), //Rotate by ㄫ/2
-                    magPerpForce = Math.sqrt(perpForce.x*perpForce.x + perpForce.y*perpForce.y),
-                    vVel = playerOne.physics.GetLinearVelocity(),
-                    cVel = (perpForce.x*vVel.x + perpForce.y*vVel.y)/magPerpForce, //component of vVel in direction of a vectory perpendicular to vForce
-                    dampForce = new b2Vec2(-unitForce.x*cVel, -unitForce.y*cVel),
-                    newForce = new b2Vec2(vForce.x+dampForce.x, vForce.y+dampForce.y);
+            let physics = playerOne.physics,
+                angle = physics.GetAngle(),
+                f = playerForce,
+                fv;
 
-                keyChange(state, playerOne, newForce);
+            if(keyPress.getKeyState('ShiftLeft')) {
+                f *= boostMultipier;
             }
+
+            fv = new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f);
+            applyForce(playerOne, fv);
+            applyForce(playerOne, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity()));
         }
     }],
     ['onKey', 'KeyS', (state)=> {
@@ -173,9 +174,9 @@ keyPress = KeyPress.bindKeys([
             let angle = playerOne.physics.GetAngle();
 
             if(keyPress.getKeyState('ShiftLeft')) {
-                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*-playerForce*10, Math.sin(angle)*-playerForce));
+                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce*10, Math.sin(angle)*-playerForce));
             }else{
-                keyChange(state, playerOne, new b2Vec2(Math.cos(angle)*-playerForce, Math.sin(angle)*-playerForce));
+                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce, Math.sin(angle)*-playerForce));
             }
         }
     }],
@@ -286,7 +287,7 @@ keyPress = KeyPress.bindKeys([
         };
     })()],
     ['onKeyPress', 'Backquote', ()=> {
-        document.body.querySelector('#console').style.display = 'inline-block';
+        document.body.querySelector('#console').classList.toggle('open');
     }],
     ['onKeyPress', 'KeyG', ()=> {
         hasGravity = !hasGravity;
@@ -389,10 +390,8 @@ function resizeCanvas() {
     updateCameraPosition();
 }
 
-function keyChange(keyState, body, forceVector) {
-    let vel = body.physics.GetLinearVelocity();
+function applyForce(body, forceVector) {
     body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
-    console.debug(`Linear Vel: (${vel.x}, ${vel.y})`);
 }
 
 function turnBox(body, force) {
@@ -625,6 +624,10 @@ function createWallPhysics(pos, dim) {
     let floorbody = world.CreateBody(floorbodyDef);
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
+}
+
+function dampeningForce(t, v) {
+    return {x: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * -Math.sin(t), y: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * Math.cos(t)};
 }
 
 // function rotate(vector, angle) {
