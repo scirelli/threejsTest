@@ -10880,6 +10880,7 @@ const Collision =        Box2D.Collision,
     CrossVV =            Box2D.Common.Math.b2Math.CrossVV,
     CrossVF =            Box2D.Common.Math.b2Math.CrossVF,
     CrossFV =            Box2D.Common.Math.b2Math.CrossFV,
+    MulFV =              Box2D.Common.Math.b2Math.MulFV,
     Dynamics =           Box2D.Dynamics,
     Contacts =           Box2D.Dynamics.Contacts,
     Controllers=         Box2D.Dynamics.Controllers,
@@ -10910,5 +10911,6 @@ export {
     Dot,
     CrossVV,
     CrossVF,
-    CrossFV
+    CrossFV,
+    MulFV
 };

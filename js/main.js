@@ -31,7 +31,8 @@ import {
     b2Body,
     b2FixtureDef,
     b2BodyDef,
-    b2PolygonShape
+    b2PolygonShape,
+    MulFV
     // Dot,
     // CrossVV
 } from './box2d/Box2D.js';
@@ -151,13 +152,11 @@ console.debug = (()=>{
 
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
-        /*
-         CrossVV(vForce, vVel)
-         */
         if(state) {
             let physics = playerOne.physics,
                 angle = physics.GetAngle(),
                 f = playerForce,
+                dampeningForceMultiplier = 1,
                 fv;
 
             if(keyPress.getKeyState('ShiftLeft')) {
@@ -166,7 +165,7 @@ keyPress = KeyPress.bindKeys([
 
             fv = new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f);
             applyForce(playerOne, fv);
-            applyForce(playerOne, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity()));
+            applyForce(playerOne, MulFV(dampeningForceMultiplier, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())));
         }
     }],
     ['onKey', 'KeyS', (state)=> {
@@ -428,7 +427,7 @@ function createBouncyBall(x=0, y=0, impulseForce, initVel) {
 }
 
 function createBallMesh(x=0, y=0) {
-    let geometry = new OctahedronGeometry(2, 2),
+    let geometry = new OctahedronGeometry(4, 2),
         texture = new TextureLoader().load('textures/checker/redwhite.jpg', function(texture) {
             texture.wrapS = texture.wrapT = RepeatWrapping;
             texture.offset.set(0, 0);
@@ -450,12 +449,12 @@ function createBallMesh(x=0, y=0) {
 }
 
 function createBallPhysics(x=0, y=0, impulseForce, initVel) {
-    let circleShape = new b2CircleShape(2),
+    let circleShape = new b2CircleShape(4),
         circleFixtureDef = new b2FixtureDef(),
         circleBdDef = new b2BodyDef();
 
     circleFixtureDef.shape = circleShape;
-    circleFixtureDef.density = 0.5;
+    circleFixtureDef.density = 0.2;
     circleFixtureDef.friction = Math.randRange(0.5, 1);
     circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
 
@@ -615,7 +614,7 @@ function createWallPhysics(pos, dim) {
 
     floorshape.SetAsOrientedBox(dim.width, dim.height, {x: 0, y: 0}, 0);
     floorfixtureDef.shape = floorshape;
-    floorfixtureDef.density = 1;
+    floorfixtureDef.density = 5;
     floorfixtureDef.friction = 0.5;
     floorfixtureDef.restitution = 0.5;
     floorbodyDef.type = Box2D.Dynamics.b2Body.b2_staticBody;
