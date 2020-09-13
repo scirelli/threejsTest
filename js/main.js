@@ -162,7 +162,7 @@ keyPress = KeyPress.bindKeys([
             let physics = playerOne.physics,
                 angle = physics.GetAngle(),
                 f = playerForce,
-                dampeningForceMultiplier = 1,
+                dampeningForceMultiplier = -1,
                 fv;
 
             if(keyPress.getKeyState('ShiftLeft')) {
@@ -618,7 +618,7 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    //playerBodyDef.linearDamping = playerForce/1000;
+    playerBodyDef.linearDamping = playerForce/1000;
     playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
