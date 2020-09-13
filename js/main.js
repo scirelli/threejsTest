@@ -42,15 +42,15 @@ import { KeyPress } from './KeyPress.js';
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
 };
-const DO_SLEEP = true;
+const DO_SLEEP = true,
+    FIXED_TIMESTEP = 1/60, //1s/60 frames
+    MAX_STEPS = 5;
 //HALF_PI = Math.PI/2;
 
 const gravity = new b2Vec2(0.0, 0.0),
     //DEGTORAD = 0.0174533,
     translate = {x: 0, y: 0},
     scale = 25,
-    timeStep = 1.0/60,
-    iteration = 1,
     world = new b2World(gravity, DO_SLEEP),
     renderer = new WebGLRenderer(),
     //loader = new TDSLoader(),
@@ -80,7 +80,12 @@ let canvas,
     hasGravity = true,
     playerForce = 802,
     playerAngularForce = 400,
-    boostMultipier = 1.5;
+    boostMultipier = 1.5,
+    fixedTimestepAccumulator = 0,
+    fixedTimestepAccumulatorRatio = 0,
+    nSteps = 1,
+    nStepsClamped = MAX_STEPS,
+    dt = performance.now()*0.001;
 
 const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
     ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
@@ -91,6 +96,7 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF}));
 
 balls.push(createBouncyBall(0, -4));
+scene.add(balls[balls.length-1]);
 scene.add(ceiling);
 scene.add(floor);
 scene.add(leftWall);
@@ -342,10 +348,61 @@ canvas.addEventListener('click', (evt)=> {
 });
 
 (function animate() {
-    keyPress.processKeys();
-    world.Step(timeStep, iteration);
+    dt = performance.now()*0.001 - dt;
+    fixedTimestepAccumulator += dt;
+    nSteps = Math.floor(fixedTimestepAccumulator / FIXED_TIMESTEP);
+    // To avoid rounding errors, touches fixedTimestepAccumulator_ only if needed.
+    if(nSteps > 0) {
+        fixedTimestepAccumulator -= nSteps * FIXED_TIMESTEP;
+    }
+    fixedTimestepAccumulatorRatio = fixedTimestepAccumulator / FIXED_TIMESTEP;
+
+    nStepsClamped = Math.min(nSteps, MAX_STEPS);
+    for(let i = 0; i < nStepsClamped; ++i) {
+        resetSmoothStates();
+        singleStep(FIXED_TIMESTEP);
+    }
     world.ClearForces();
 
+    draw();
+
+    smoothStates(fixedTimestepAccumulatorRatio);
+    dt = performance.now()*0.001;
+    requestAnimationFrame(animate);
+})();
+
+function singleStep(dt) {
+    keyPress.processKeys(dt);
+    world.Step(dt, 1);
+}
+
+function smoothStates(fixedTimestepAccumulatorRatio) {
+    let dt = fixedTimestepAccumulatorRatio * FIXED_TIMESTEP;
+
+    for(let b=world.GetBodyList(); b; b = b.GetNext()) {
+        if(b.GetType() === Box2D.Dynamics.b2Body.b2_staticBody) {
+            continue;
+        }
+
+        b.smoothedPosition = b.GetPosition() + dt * b.GetLinearVelocity();
+        b.smoothedAngle = b.GetAngle() + dt * b.GetAngularVelocity();
+    }
+}
+
+
+
+function resetSmoothStates() {
+    for(let b = world.GetBodyList(); b; b = b.GetNext()) {
+        if(b.GetType() === Box2D.Dynamics.b2Body.b2_staticBody) {
+            continue;
+        }
+
+        b.smoothedPosition = b.GetPosition();
+        b.smoothedAngle = b.GetAngle();
+    }
+}
+
+function draw() {
     let pos = box1.physics.GetPosition(),
         angle = box1.physics.GetAngle();
 
@@ -370,8 +427,7 @@ canvas.addEventListener('click', (evt)=> {
     camera.position.x = pos.x;
     camera.position.y = -pos.y;
     renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-})();
+}
 
 function resizeCanvas() {
     renderer.setSize(container.offsetWidth, container.offsetHeight);
