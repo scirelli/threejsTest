@@ -38,6 +38,7 @@ import {
 } from './box2d/Box2D.js';
 
 import { KeyPress } from './KeyPress.js';
+import { dampeningForce } from './helpers.js';
 
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
@@ -162,7 +163,6 @@ keyPress = KeyPress.bindKeys([
             let physics = playerOne.physics,
                 angle = physics.GetAngle(),
                 f = playerForce,
-                dampeningForceMultiplier = -1,
                 fv;
 
             if(keyPress.getKeyState('ShiftLeft')) {
@@ -171,7 +171,7 @@ keyPress = KeyPress.bindKeys([
 
             fv = new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f);
             applyForce(playerOne, fv);
-            applyForce(playerOne, MulFV(dampeningForceMultiplier, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())));
+            playerOne.physics.ApplyImpulse(MulFV(-1, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyS', (state)=> {
@@ -618,7 +618,7 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    playerBodyDef.linearDamping = playerForce/1000;
+    //playerBodyDef.linearDamping = playerForce/1000;
     playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
@@ -680,11 +680,3 @@ function createWallPhysics(pos, dim) {
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
 }
-
-function dampeningForce(t, v) {
-    return {x: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * -Math.sin(t), y: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * Math.cos(t)};
-}
-
-// function rotate(vector, angle) {
-//     return new b2Vec2(vector.x*Math.cos(angle) + vector.y*(-Math.sin(angle)), vector.x*Math.sin(angle) + vector.y*Math.cos(angle));
-// }
