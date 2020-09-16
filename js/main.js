@@ -44,9 +44,9 @@ Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
 };
 const DO_SLEEP = true,
+    //HALF_PI = Math.PI/2;
     FIXED_TIMESTEP = 1/60, //1s/60 frames
     MAX_STEPS = 5;
-//HALF_PI = Math.PI/2;
 
 const gravity = new b2Vec2(0.0, 0.0),
     //DEGTORAD = 0.0174533,
@@ -80,7 +80,7 @@ let canvas,
     cameraMaximumDimension = 1,
     hasGravity = true,
     playerForce = 802,
-    playerAngularForce = 400,
+    playerAngularForce = 400/400,
     boostMultipier = 1.5,
     fixedTimestepAccumulator = 0,
     fixedTimestepAccumulatorRatio = 0,
@@ -162,27 +162,27 @@ keyPress = KeyPress.bindKeys([
         if(state) {
             let physics = playerOne.physics,
                 angle = physics.GetAngle(),
-                f = playerForce,
-                fv;
+                f = playerForce;
 
             if(keyPress.getKeyState('ShiftLeft')) {
                 f *= boostMultipier;
             }
 
-            fv = new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f);
-            applyForce(playerOne, fv);
+            applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
             playerOne.physics.ApplyImpulse(MulFV(-1, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyS', (state)=> {
         if(state) {
-            let angle = playerOne.physics.GetAngle();
+            let physics = playerOne.physics,
+                angle = physics.GetAngle(),
+                f = -playerForce;
 
             if(keyPress.getKeyState('ShiftLeft')) {
-                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce*10, Math.sin(angle)*-playerForce));
-            }else{
-                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce, Math.sin(angle)*-playerForce));
+                f *= boostMultipier;
             }
+            applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+            playerOne.physics.ApplyImpulse(MulFV(-1, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyL', (state)=> {
@@ -389,8 +389,6 @@ function smoothStates(fixedTimestepAccumulatorRatio) {
     }
 }
 
-
-
 function resetSmoothStates() {
     for(let b = world.GetBodyList(); b; b = b.GetNext()) {
         if(b.GetType() === Box2D.Dynamics.b2Body.b2_staticBody) {
@@ -452,9 +450,9 @@ function applyForce(body, forceVector) {
 function turnBox(body, force) {
     let pbox = body.physics;
 
-    //pbox.SetAngle(pbox.GetAngle() + force);
-    //pbox.SetAngularVelocity(0);
-    pbox.ApplyTorque(force);
+    pbox.SetAngle(pbox.GetAngle() + force*0.1);
+    pbox.SetAngularVelocity(0);
+    //pbox.ApplyTorque(force);
     //console.debug(`Angular Velocity: ${pbox.GetAngularVelocity()}`);
     // if(pbox.GetAngularVelocity() > 3) {
     //     pbox.SetAngularVelocity(3);
@@ -618,11 +616,11 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    //playerBodyDef.linearDamping = playerForce/1000;
-    playerBodyDef.angularDamping = playerAngularForce/100;
+    playerBodyDef.linearDamping = playerForce/1000;
+    //playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
-    //playerBody.SetFixedRotation(true);
+    playerBody.SetFixedRotation(true);
     playerBody.lastFired = performance.now();
     playerBody.lastBurst = performance.now();
 
