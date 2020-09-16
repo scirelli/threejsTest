@@ -79,9 +79,11 @@ let canvas,
     keyPress = null,
     cameraMaximumDimension = 1,
     hasGravity = true,
-    playerForce = 802,
+    playerForce = 2802,
     playerAngularForce = 400/400,
-    boostMultipier = 1.5,
+    dampeningForceScaler = 0.1,
+    linearDamping = playerForce/500,
+    boostMultipier = 2.5,
     fixedTimestepAccumulator = 0,
     fixedTimestepAccumulatorRatio = 0,
     nSteps = 1,
@@ -169,7 +171,7 @@ keyPress = KeyPress.bindKeys([
             }
 
             applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
-            playerOne.physics.ApplyImpulse(MulFV(-1, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
+            playerOne.physics.ApplyImpulse(MulFV(-dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyS', (state)=> {
@@ -182,7 +184,7 @@ keyPress = KeyPress.bindKeys([
                 f *= boostMultipier;
             }
             applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
-            playerOne.physics.ApplyImpulse(MulFV(-1, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
+            playerOne.physics.ApplyImpulse(MulFV(-dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyL', (state)=> {
@@ -616,7 +618,7 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    playerBodyDef.linearDamping = playerForce/1000;
+    playerBodyDef.linearDamping = linearDamping;
     //playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
