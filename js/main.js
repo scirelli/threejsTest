@@ -39,6 +39,7 @@ import {
 
 import { KeyPress } from './KeyPress.js';
 import { dampeningForce } from './helpers.js';
+import {Mouse} from './Mouse.js';
 
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
@@ -114,7 +115,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 
 container.appendChild(renderer.domElement);
-canvas = document.body.querySelector('canvas');
+canvas = document.body.querySelector('canvas'),
 
 lightBall.position.set(0, 0, -5);
 mainLight.position.set(0, 0, -5);
@@ -348,6 +349,30 @@ canvas.addEventListener('click', (evt)=> {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
     }
 });
+(new Mouse(canvas))
+    .setup()
+    .on('mousemove', (e)=> {
+        let physics = playerOne.physics;
+
+        physics.SetAngle(physics.GetAngle() + (e.movementX)*0.01);
+        physics.SetAngularVelocity(0);
+        console.debug(`mouse.x=${e.movementX}`);
+    });
+
+// document.addEventListener('mousemove', (()=>{
+//     let prevX = canvas.width/2;
+//     return (e)=> {
+//         var relativeX = e.clientX - canvas.offsetLeft;
+//         if(relativeX > 0 && relativeX < canvas.width) {
+//             let physics = playerOne.physics;
+
+//             physics.SetAngle(physics.GetAngle() + (relativeX-prevX)*0.01);
+//             physics.SetAngularVelocity(0);
+//             console.debug(`r=${relativeX} p=${prevX} d=${relativeX-prevX}`);
+//         }
+//         prevX = relativeX;
+//     };
+// })(), false);
 
 (function animate() {
     dt = performance.now()*0.001 - dt;
