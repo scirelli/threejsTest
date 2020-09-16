@@ -57,7 +57,7 @@ const gravity = new b2Vec2(0.0, 0.0),
     //loader = new TDSLoader(),
     loader = new OBJLoader(),
     scene = new Scene(),
-    camera = new PerspectiveCamera(50, 1, 1, 10000),
+    camera = new PerspectiveCamera(45, 1, 1, 100000),
     mainLight = new PointLight(0XFFFFFF, 1.0, 500, 2),
     ambientLight = new AmbientLight(0xF0F0F0, 0.5),
 
@@ -109,7 +109,7 @@ scene.add(box1);
 scene.add(playerOne);
 scene.add(lightBall);
 
-camera.zoom = 0.3;
+camera.zoom = 0.5;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 
@@ -465,7 +465,7 @@ function turnBox(body, force) {
 }
 
 function updateCameraPosition() {
-    camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
+    camera.position.set(translate.x, -translate.y, 2*cameraMaximumDimension/scale);
 }
 
 function removeBall(b) {
@@ -510,7 +510,7 @@ function createBallPhysics(x=0, y=0, impulseForce, initVel) {
         circleBdDef = new b2BodyDef();
 
     circleFixtureDef.shape = circleShape;
-    circleFixtureDef.density = 0.2;
+    circleFixtureDef.density = 0.1;
     circleFixtureDef.friction = Math.randRange(0.5, 1);
     circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
 
