@@ -38,25 +38,27 @@ import {
 } from './box2d/Box2D.js';
 
 import { KeyPress } from './KeyPress.js';
+import { dampeningForce } from './helpers.js';
+import {Mouse} from './Mouse.js';
 
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
 };
-const DO_SLEEP = true;
-//HALF_PI = Math.PI/2;
+const DO_SLEEP = true,
+    //HALF_PI = Math.PI/2;
+    FIXED_TIMESTEP = 1/60, //1s/60 frames
+    MAX_STEPS = 5;
 
 const gravity = new b2Vec2(0.0, 0.0),
     //DEGTORAD = 0.0174533,
     translate = {x: 0, y: 0},
     scale = 25,
-    timeStep = 1.0/60,
-    iteration = 1,
     world = new b2World(gravity, DO_SLEEP),
     renderer = new WebGLRenderer(),
     //loader = new TDSLoader(),
     loader = new OBJLoader(),
     scene = new Scene(),
-    camera = new PerspectiveCamera(50, 1, 1, 10000),
+    camera = new PerspectiveCamera(45, 1, 1, 100000),
     mainLight = new PointLight(0XFFFFFF, 1.0, 500, 2),
     ambientLight = new AmbientLight(0xF0F0F0, 0.5),
 
@@ -78,9 +80,17 @@ let canvas,
     keyPress = null,
     cameraMaximumDimension = 1,
     hasGravity = true,
-    playerForce = 802,
-    playerAngularForce = 400,
-    boostMultipier = 1.5;
+    playerForce = 2802,
+    playerAngularForce = 400/400,
+    dampeningForceScaler = 0.1,
+    linearDamping = playerForce/800,
+    boostMultipier = 2.5,
+    playerStrafeMultipier = 1,
+    fixedTimestepAccumulator = 0,
+    fixedTimestepAccumulatorRatio = 0,
+    nSteps = 1,
+    nStepsClamped = MAX_STEPS,
+    dt = performance.now()*0.001;
 
 const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
     ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
@@ -91,6 +101,7 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF}));
 
 balls.push(createBouncyBall(0, -4));
+scene.add(balls[balls.length-1]);
 scene.add(ceiling);
 scene.add(floor);
 scene.add(leftWall);
@@ -100,12 +111,12 @@ scene.add(box1);
 scene.add(playerOne);
 scene.add(lightBall);
 
-camera.zoom = 0.3;
+camera.zoom = 0.5;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = PCFSoftShadowMap;
 
 container.appendChild(renderer.domElement);
-canvas = document.body.querySelector('canvas');
+canvas = document.body.querySelector('canvas'),
 
 lightBall.position.set(0, 0, -5);
 mainLight.position.set(0, 0, -5);
@@ -150,53 +161,56 @@ console.debug = (()=>{
     };
 })();
 
+resizeCanvas();
+
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
         if(state) {
             let physics = playerOne.physics,
                 angle = physics.GetAngle(),
-                f = playerForce,
-                dampeningForceMultiplier = 1,
-                fv;
+                f = playerForce;
 
             if(keyPress.getKeyState('ShiftLeft')) {
                 f *= boostMultipier;
             }
 
-            fv = new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f);
-            applyForce(playerOne, fv);
-            applyForce(playerOne, MulFV(dampeningForceMultiplier, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())));
+            applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+            playerOne.physics.ApplyImpulse(MulFV(-dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyS', (state)=> {
         if(state) {
-            let angle = playerOne.physics.GetAngle();
+            let physics = playerOne.physics,
+                angle = physics.GetAngle(),
+                f = -playerForce;
 
             if(keyPress.getKeyState('ShiftLeft')) {
-                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce*10, Math.sin(angle)*-playerForce));
-            }else{
-                applyForce(playerOne, new b2Vec2(Math.cos(angle)*-playerForce, Math.sin(angle)*-playerForce));
+                f *= boostMultipier;
             }
+            applyForce(playerOne, new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f));
+            playerOne.physics.ApplyImpulse(MulFV(-dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), playerOne.physics.GetWorldCenter());
         }
     }],
     ['onKey', 'KeyL', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*playerAngularForce);
+            let angle = playerOne.physics.GetAngle();
+            applyForce(playerOne, MulFV(playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
         }
     }],
     ['onKey', 'KeyD', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*playerAngularForce);
+            turnBody(playerOne, 1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyJ', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*playerAngularForce);
+            let angle = playerOne.physics.GetAngle();
+            applyForce(playerOne, MulFV(-playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
         }
     }],
     ['onKey', 'KeyA', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*playerAngularForce);
+            turnBody(playerOne, -1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyI', (state)=> {
@@ -313,8 +327,6 @@ keyPress = KeyPress.bindKeys([
     }]
 ]);
 
-resizeCanvas();
-
 window.addEventListener('resize', resizeCanvas);
 canvas.addEventListener('click', (evt)=> {
     evt.preventDefault();
@@ -340,12 +352,70 @@ canvas.addEventListener('click', (evt)=> {
         balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
     }
 });
+(new Mouse(canvas))
+    .setup()
+    .on('mousemove', (e)=> {
+        let physics = playerOne.physics;
+
+        physics.SetAngle(physics.GetAngle() + (e.movementX)*0.01);
+        physics.SetAngularVelocity(0);
+        console.debug(`mouse.x=${e.movementX}`);
+    });
 
 (function animate() {
-    keyPress.processKeys();
-    world.Step(timeStep, iteration);
+    dt = performance.now()*0.001 - dt;
+    fixedTimestepAccumulator += dt;
+    nSteps = Math.floor(fixedTimestepAccumulator / FIXED_TIMESTEP);
+    // To avoid rounding errors, touches fixedTimestepAccumulator_ only if needed.
+    if(nSteps > 0) {
+        fixedTimestepAccumulator -= nSteps * FIXED_TIMESTEP;
+    }
+    fixedTimestepAccumulatorRatio = fixedTimestepAccumulator / FIXED_TIMESTEP;
+
+    nStepsClamped = Math.min(nSteps, MAX_STEPS);
+    for(let i = 0; i < nStepsClamped; ++i) {
+        resetSmoothStates();
+        singleStep(FIXED_TIMESTEP);
+    }
     world.ClearForces();
 
+    draw();
+
+    smoothStates(fixedTimestepAccumulatorRatio);
+    dt = performance.now()*0.001;
+    requestAnimationFrame(animate);
+})();
+
+function singleStep(dt) {
+    keyPress.processKeys(dt);
+    world.Step(dt, 1);
+}
+
+function smoothStates(fixedTimestepAccumulatorRatio) {
+    let dt = fixedTimestepAccumulatorRatio * FIXED_TIMESTEP;
+
+    for(let b=world.GetBodyList(); b; b = b.GetNext()) {
+        if(b.GetType() === Box2D.Dynamics.b2Body.b2_staticBody) {
+            continue;
+        }
+
+        b.smoothedPosition = b.GetPosition() + dt * b.GetLinearVelocity();
+        b.smoothedAngle = b.GetAngle() + dt * b.GetAngularVelocity();
+    }
+}
+
+function resetSmoothStates() {
+    for(let b = world.GetBodyList(); b; b = b.GetNext()) {
+        if(b.GetType() === Box2D.Dynamics.b2Body.b2_staticBody) {
+            continue;
+        }
+
+        b.smoothedPosition = b.GetPosition();
+        b.smoothedAngle = b.GetAngle();
+    }
+}
+
+function draw() {
     let pos = box1.physics.GetPosition(),
         angle = box1.physics.GetAngle();
 
@@ -370,8 +440,7 @@ canvas.addEventListener('click', (evt)=> {
     camera.position.x = pos.x;
     camera.position.y = -pos.y;
     renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-})();
+}
 
 function resizeCanvas() {
     renderer.setSize(container.offsetWidth, container.offsetHeight);
@@ -393,12 +462,12 @@ function applyForce(body, forceVector) {
     body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
 }
 
-function turnBox(body, force) {
+function turnBody(body, force) {
     let pbox = body.physics;
 
-    //pbox.SetAngle(pbox.GetAngle() + force);
-    //pbox.SetAngularVelocity(0);
-    pbox.ApplyTorque(force);
+    pbox.SetAngle(pbox.GetAngle() + force*0.1);
+    pbox.SetAngularVelocity(0);
+    //pbox.ApplyTorque(force);
     //console.debug(`Angular Velocity: ${pbox.GetAngularVelocity()}`);
     // if(pbox.GetAngularVelocity() > 3) {
     //     pbox.SetAngularVelocity(3);
@@ -409,7 +478,7 @@ function turnBox(body, force) {
 }
 
 function updateCameraPosition() {
-    camera.position.set(translate.x, -translate.y, 1.21*cameraMaximumDimension/scale);
+    camera.position.set(translate.x, -translate.y, 2*cameraMaximumDimension/scale);
 }
 
 function removeBall(b) {
@@ -454,7 +523,7 @@ function createBallPhysics(x=0, y=0, impulseForce, initVel) {
         circleBdDef = new b2BodyDef();
 
     circleFixtureDef.shape = circleShape;
-    circleFixtureDef.density = 0.2;
+    circleFixtureDef.density = 0.1;
     circleFixtureDef.friction = Math.randRange(0.5, 1);
     circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
 
@@ -562,11 +631,11 @@ function createPlayerPhysics(pos, dim) {
     playerBodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
     playerBodyDef.position = pos;
     playerBodyDef.angle = 0.0;
-    //playerBodyDef.linearDamping = playerForce/1000;
-    playerBodyDef.angularDamping = playerAngularForce/100;
+    playerBodyDef.linearDamping = linearDamping;
+    //playerBodyDef.angularDamping = playerAngularForce/100;
     let playerBody = world.CreateBody(playerBodyDef);
     playerBody.CreateFixture(playerFixtureDef);
-    //playerBody.SetFixedRotation(true);
+    playerBody.SetFixedRotation(true);
     playerBody.lastFired = performance.now();
     playerBody.lastBurst = performance.now();
 
@@ -624,11 +693,3 @@ function createWallPhysics(pos, dim) {
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
 }
-
-function dampeningForce(t, v) {
-    return {x: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * -Math.sin(t), y: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * Math.cos(t)};
-}
-
-// function rotate(vector, angle) {
-//     return new b2Vec2(vector.x*Math.cos(angle) + vector.y*(-Math.sin(angle)), vector.x*Math.sin(angle) + vector.y*Math.cos(angle));
-// }
