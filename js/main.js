@@ -85,6 +85,7 @@ let canvas,
     dampeningForceScaler = 0.1,
     linearDamping = playerForce/800,
     boostMultipier = 2.5,
+    playerStrafeMultipier = 1,
     fixedTimestepAccumulator = 0,
     fixedTimestepAccumulatorRatio = 0,
     nSteps = 1,
@@ -193,7 +194,7 @@ keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyL', (state)=> {
         if(state) {
             let angle = playerOne.physics.GetAngle();
-            applyForce(playerOne, MulFV(1, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
+            applyForce(playerOne, MulFV(playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
         }
     }],
     ['onKey', 'KeyD', (state)=> {
@@ -204,7 +205,7 @@ keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyJ', (state)=> {
         if(state) {
             let angle = playerOne.physics.GetAngle();
-            applyForce(playerOne, MulFV(-1, new b2Vec2(-Math.sin(angle)*playerForce*0.5, Math.cos(angle)*playerForce*0.5)));
+            applyForce(playerOne, MulFV(-playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
         }
     }],
     ['onKey', 'KeyA', (state)=> {
