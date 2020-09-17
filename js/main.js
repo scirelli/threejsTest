@@ -160,6 +160,8 @@ console.debug = (()=>{
     };
 })();
 
+resizeCanvas();
+
 keyPress = KeyPress.bindKeys([
     ['onKey', 'KeyW', (state, code, keyPress)=> {
         if(state) {
@@ -190,22 +192,24 @@ keyPress = KeyPress.bindKeys([
     }],
     ['onKey', 'KeyL', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*playerAngularForce);
+            let angle = playerOne.physics.GetAngle();
+            applyForce(playerOne, MulFV(1, new b2Vec2(-Math.sin(angle)*playerForce, Math.cos(angle)*playerForce)));
         }
     }],
     ['onKey', 'KeyD', (state)=> {
         if(state) {
-            turnBox(playerOne, 1*playerAngularForce);
+            turnBody(playerOne, 1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyJ', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*playerAngularForce);
+            let angle = playerOne.physics.GetAngle();
+            applyForce(playerOne, MulFV(-1, new b2Vec2(-Math.sin(angle)*playerForce*0.5, Math.cos(angle)*playerForce*0.5)));
         }
     }],
     ['onKey', 'KeyA', (state)=> {
         if(state) {
-            turnBox(playerOne, -1*playerAngularForce);
+            turnBody(playerOne, -1*playerAngularForce);
         }
     }],
     ['onKey', 'KeyI', (state)=> {
@@ -322,8 +326,6 @@ keyPress = KeyPress.bindKeys([
     }]
 ]);
 
-resizeCanvas();
-
 window.addEventListener('resize', resizeCanvas);
 canvas.addEventListener('click', (evt)=> {
     evt.preventDefault();
@@ -358,21 +360,6 @@ canvas.addEventListener('click', (evt)=> {
         physics.SetAngularVelocity(0);
         console.debug(`mouse.x=${e.movementX}`);
     });
-
-// document.addEventListener('mousemove', (()=>{
-//     let prevX = canvas.width/2;
-//     return (e)=> {
-//         var relativeX = e.clientX - canvas.offsetLeft;
-//         if(relativeX > 0 && relativeX < canvas.width) {
-//             let physics = playerOne.physics;
-
-//             physics.SetAngle(physics.GetAngle() + (relativeX-prevX)*0.01);
-//             physics.SetAngularVelocity(0);
-//             console.debug(`r=${relativeX} p=${prevX} d=${relativeX-prevX}`);
-//         }
-//         prevX = relativeX;
-//     };
-// })(), false);
 
 (function animate() {
     dt = performance.now()*0.001 - dt;
@@ -474,7 +461,7 @@ function applyForce(body, forceVector) {
     body.physics.ApplyForce(forceVector, body.physics.GetWorldCenter());
 }
 
-function turnBox(body, force) {
+function turnBody(body, force) {
     let pbox = body.physics;
 
     pbox.SetAngle(pbox.GetAngle() + force*0.1);
