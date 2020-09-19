@@ -1,23 +1,22 @@
 import { KeyPress } from '../KeyPress.js';
+import { Mouse } from '../Mouse.js';
 
 class GameObject{
     mesh = null;
-    physics = null;
+    physicsBody = null;
     keyBindings = null;
+    mouse = null;
 
-    constructor(options) {
-        this.mesh;
-        this.physics;
+    constructor(options, physics, mesh) {
+        this.mesh = mesh;
+        this.physicsBody = physics;
+
         this.keyBindings = new KeyPress();
-
-        this.create(options);
+        this.mouse = new Mouse();
     }
 
-    create(options) {
-        this.createMesh(options);
-        this.createPhysics(options);
-    }
-
+    bindKeys() {}
+    bindMouse() {}
     update() {}
 }
 

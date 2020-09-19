@@ -37,9 +37,10 @@ import {
     // CrossVV
 } from './box2d/Box2D.js';
 
-import { KeyPress } from './KeyPress.js';
-import { dampeningForce } from './helpers.js';
+import {KeyPress} from './KeyPress.js';
+import {dampeningForce} from './math-extras.js';
 import {Mouse} from './Mouse.js';
+import {compileObject} from './extras-eval.js';
 
 Math.randRange = function(min, max) {
     return (Math.random() * (max - min)) + min;
