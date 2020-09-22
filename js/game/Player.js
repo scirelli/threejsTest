@@ -101,107 +101,6 @@ class Player extends GameObject{
         });
     }
 
-    static actions = {
-        'forward': function forward(state, code, keyPress) {
-            if(state) {
-                let physics = this.physicsBody,
-                    angle = physics.GetAngle(),
-                    f = this.playerForce;
-
-                if(keyPress.getKeyState('ShiftLeft')) {
-                    f *= this.boostMultipier;
-                }
-
-                physics.ApplyForce(new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f), physics.GetWorldCenter());
-                physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
-            }
-        },
-        'backward': function backward(state, code, keyPress) {
-            if(state) {
-                let physics = this.physicsBody,
-                    angle = physics.GetAngle(),
-                    f = -this.playerForce;
-
-                if(keyPress.getKeyState('ShiftLeft')) {
-                    f *= this.boostMultipier;
-                }
-
-                physics.ApplyForce(new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f), physics.GetWorldCenter());
-                physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
-            }
-        },
-        'strafe-right': function strafeRight(state) {
-            if(state) {
-                let physics = this.physicsBody,
-                    angle = physics.GetAngle();
-
-                physics.ApplyForce(MulFV(this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
-            }
-        },
-        'rotate-cw': function rotateCW(state) {
-            if(state) {
-                let pbox = this.physicsBody;
-
-                pbox.SetAngle(pbox.GetAngle() + 1*this.playerAngularForce*0.1);
-                pbox.SetAngularVelocity(0);
-            }
-        },
-        'strafe-left': function strafeLeft(state) {
-            if(state) {
-                let physics = this.physicsBody,
-                    angle = physics.GetAngle();
-
-                physics.ApplyForce(MulFV(-this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
-            }
-        },
-        'rotate-cc': function rotateCC(state) {
-            if(state) {
-                let pbox = this.physicsBody;
-
-                pbox.SetAngle(pbox.GetAngle() + -1*this.playerAngularForce*0.1);
-                pbox.SetAngularVelocity(0);
-            }
-        },
-        'dash-forward': function dashForward(state) {
-            if(state) {
-                if(performance.now() - this.lastBurst > (2.0*1000)) {
-                    let angle = this.physicsBody.GetAngle();
-                    this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*this.playerForce*this.boostMultipier, Math.sin(angle)*this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
-                    this.lastBurst = performance.now();
-                }
-            }
-        },
-        'dash-backward': function dashBackward(state) {
-            if(state) {
-                if(performance.now() - this.lastBurst > (2.0*1000)) {
-                    let angle = this.physicsBody.GetAngle();
-                    this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*-this.playerForce*this.boostMultipier, Math.sin(angle)*-this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
-                    this.lastBurst = performance.now();
-                }
-            }
-        },
-        'fire': function fire(state) {
-            if(state) {
-                if(performance.now() - this.lastFired > (0.6*1000)) {
-                    fireBullet.call(this);
-                }
-            }
-        },
-        'puke': function puke(state) {
-            if(state) {
-                if(performance.now() - this.lastFired > (0.0*1000)) {
-                    fireBullet.call(this);
-                }
-            }
-        },
-        'mouse-rotation': function (evnt) {
-            let physics = this.physicsBody;
-
-            physics.SetAngle(physics.GetAngle() + (evnt.movementX)*0.01);
-            physics.SetAngularVelocity(0);
-        }
-    }
-
     static createPhysics(/*world, options*/) {
         return createBoxPhysics.apply(this, arguments);
     }
@@ -209,6 +108,107 @@ class Player extends GameObject{
         return createBoxMesh.apply(this, arguments);
     }
 }
+
+Player.actions = {
+    'forward': function forward(state, code, keyPress) {
+        if(state) {
+            let physics = this.physicsBody,
+                angle = physics.GetAngle(),
+                f = this.playerForce;
+
+            if(keyPress.getKeyState('ShiftLeft')) {
+                f *= this.boostMultipier;
+            }
+
+            physics.ApplyForce(new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f), physics.GetWorldCenter());
+            physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
+        }
+    },
+    'backward': function backward(state, code, keyPress) {
+        if(state) {
+            let physics = this.physicsBody,
+                angle = physics.GetAngle(),
+                f = -this.playerForce;
+
+            if(keyPress.getKeyState('ShiftLeft')) {
+                f *= this.boostMultipier;
+            }
+
+            physics.ApplyForce(new b2Vec2(Math.cos(angle)*f, Math.sin(angle)*f), physics.GetWorldCenter());
+            physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
+        }
+    },
+    'strafe-right': function strafeRight(state) {
+        if(state) {
+            let physics = this.physicsBody,
+                angle = physics.GetAngle();
+
+            physics.ApplyForce(MulFV(this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
+        }
+    },
+    'rotate-cw': function rotateCW(state) {
+        if(state) {
+            let pbox = this.physicsBody;
+
+            pbox.SetAngle(pbox.GetAngle() + 1*this.playerAngularForce*0.1);
+            pbox.SetAngularVelocity(0);
+        }
+    },
+    'strafe-left': function strafeLeft(state) {
+        if(state) {
+            let physics = this.physicsBody,
+                angle = physics.GetAngle();
+
+            physics.ApplyForce(MulFV(-this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
+        }
+    },
+    'rotate-cc': function rotateCC(state) {
+        if(state) {
+            let pbox = this.physicsBody;
+
+            pbox.SetAngle(pbox.GetAngle() + -1*this.playerAngularForce*0.1);
+            pbox.SetAngularVelocity(0);
+        }
+    },
+    'dash-forward': function dashForward(state) {
+        if(state) {
+            if(performance.now() - this.lastBurst > (2.0*1000)) {
+                let angle = this.physicsBody.GetAngle();
+                this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*this.playerForce*this.boostMultipier, Math.sin(angle)*this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
+                this.lastBurst = performance.now();
+            }
+        }
+    },
+    'dash-backward': function dashBackward(state) {
+        if(state) {
+            if(performance.now() - this.lastBurst > (2.0*1000)) {
+                let angle = this.physicsBody.GetAngle();
+                this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*-this.playerForce*this.boostMultipier, Math.sin(angle)*-this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
+                this.lastBurst = performance.now();
+            }
+        }
+    },
+    'fire': function fire(state) {
+        if(state) {
+            if(performance.now() - this.lastFired > (0.6*1000)) {
+                fireBullet.call(this);
+            }
+        }
+    },
+    'puke': function puke(state) {
+        if(state) {
+            if(performance.now() - this.lastFired > (0.0*1000)) {
+                fireBullet.call(this);
+            }
+        }
+    },
+    'mouse-rotation': function (evnt) {
+        let physics = this.physicsBody;
+
+        physics.SetAngle(physics.GetAngle() + (evnt.movementX)*0.01);
+        physics.SetAngularVelocity(0);
+    }
+};
 
 function fireBullet() {
     let physics = this.physicsBody,

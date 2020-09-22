@@ -2,13 +2,6 @@ import { KeyPress } from '../KeyPress.js';
 import { Mouse } from '../Mouse.js';
 
 class GameObject{
-    scene = null;
-    world = null;
-    mesh = null;
-    physicsBody = null;
-    keyBindings = null;
-    mouse = null;
-
     constructor(options, world, scene) {
         this.world = world;
         this.scene = scene;
