@@ -1,11 +1,26 @@
 {
     "playerOne": {
-        "keyBindings": {},
+        "type": "Player",
+        "cameraFocus": true,
+        "keyBindings": {
+            "forward": "KeyW",
+            "backward": "KeyS",
+            "strafe-right": "KeyD",
+            "strafe-left": "KeyA",
+            "rotate-cw": "KeyL",
+            "rotate-cc": "KeyJ",
+            "dash-forward": "KeyI",
+            "dash-backward": "KeyK",
+            "fire": "Space",
+            "puke": "KeyP"
+        },
+        "mouseBindings": {
+            "mouse-rotation": "mousemove"
+        },
         "physics": {
             "force": 2802,
             "angularForce": 1,
             "dampeningForceScaler": 0.1,
-            "linearDamping": "{{playerOne.physics.force/800}}",
             "boostMultipier": 2.5,
             "strafeMultipier": 1,
             "shape": {
@@ -23,9 +38,9 @@
                 "isDynamic": true,
                 "position": {"x": 0, "y": 0},
                 "angle": 0,
-                "linearDamping": 0,
+                "linearDamping": "{{playerOne.physics.force/800}}",
                 "angularDamping": 0,
-                "fixedRotation": false
+                "fixedRotation": true
             }
         },
         "mesh": {
@@ -45,6 +60,7 @@
     },
 
     "box1": {
+        "type": "Player",
         "physics": {
             "shape": {
                 "width": 4,

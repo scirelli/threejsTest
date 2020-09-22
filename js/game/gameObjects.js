@@ -1,22 +1,15 @@
 import * as THREE from '/node_modules/three/build/three.module.js';
-//import {OBJLoader} from '/node_modules/three/examples/jsm/loaders/OBJLoader.js';
 import {
     Box2D
-    // , b2Vec2
-    // , b2CircleShape
-    // , b2Body
     , b2FixtureDef
     , b2BodyDef
     , b2PolygonShape
-    //,MulFV
-    //,Dot,
-    //,CrossVV
-} from './box2d/Box2D.js';
+} from '../box2d/Box2D.js';
 
 function createGameObject(options) {
     return {
         physicsBody: createBoxPhysics(options.world, options.physics),
-        mesh:        createBoxMesh( options.scene, options.mesh)
+        mesh:        createBoxMesh(options.mesh)
     };
 }
 
@@ -87,17 +80,17 @@ options = {
     }
 }
  */
-function createBoxMesh(scene, options) {
-    let material = new THREE[options.materialType]({
-            'map':       new THREE[options.loaderType]().load(options.material.texturePath),
+function createBoxMesh(options) {
+    let material = new THREE[options.material.materialType]({
+            'map':       new THREE[options.material.loaderType]().load(options.material.texturePath),
             'roughness': options.material.roughness
         }),
-        box  = new THREE.Mesh(new THREE.BoxGeometry(options.mesh.width*2, options.mesh.height*2, options.mesh.depth || 1), material);
+        box  = new THREE.Mesh(new THREE.BoxGeometry(options.width*2, options.height*2, options.depth || 1), material);
 
-    box.position.x = options.mesh.position.x;
-    box.position.y = -options.mesh.position.y;
-    box.castShadow = options.mesh.castShadow || true;
-    box.receiveShadow = options.mesh.receiveShadow || true;
+    box.position.x = options.position.x;
+    box.position.y = -options.position.y;
+    box.castShadow = options.castShadow || true;
+    box.receiveShadow = options.receiveShadow || true;
 
     return box;
 }
