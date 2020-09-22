@@ -18,6 +18,8 @@ class GameObject{
     bindKeys() {}
     bindMouse() {}
     update() {}
+    createPhysics(/*world, options*/) {}
+    createMesh(/*scene, options*/) {}
 }
 
 export {GameObject};

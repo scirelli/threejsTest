@@ -13,6 +13,13 @@ import {
     //,CrossVV
 } from './box2d/Box2D.js';
 
+function createGameObject(options) {
+    return {
+        physicsBody: createBoxPhysics(options.world, options.physics),
+        mesh:        createBoxMesh( options.scene, options.mesh)
+    };
+}
+
 /*
     options = {
        shape: {
@@ -80,7 +87,7 @@ options = {
     }
 }
  */
-function createBoxMesh(options) {
+function createBoxMesh(scene, options) {
     let material = new THREE[options.materialType]({
             'map':       new THREE[options.loaderType]().load(options.material.texturePath),
             'roughness': options.material.roughness
@@ -95,4 +102,4 @@ function createBoxMesh(options) {
     return box;
 }
 
-export {createBoxPhysics, createBoxMesh};
+export {createBoxPhysics, createBoxMesh, createGameObject};

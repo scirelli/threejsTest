@@ -5,7 +5,7 @@
             "force": 2802,
             "angularForce": 1,
             "dampeningForceScaler": 0.1,
-            "linearDamping": "playerOne.physics.force/800",
+            "linearDamping": "{{playerOne.physics.force/800}}",
             "boostMultipier": 2.5,
             "strafeMultipier": 1,
             "shape": {
@@ -29,10 +29,10 @@
             }
         },
         "mesh": {
-            "width": "playerOne.physics.shape.width",
-            "height": "playerOne.physics.shape.height",
+            "width": "{{playerOne.physics.shape.width}}",
+            "height": "{{playerOne.physics.shape.height}}",
             "depth": 1,
-            "position": "playerOne.physics.body.position",
+            "position": "{{playerOne.physics.body.position}}",
             "castShadow": true,
             "receiveShadow": true,
             "material": {
@@ -67,10 +67,10 @@
             }
         },
         "mesh": {
-            "width": "box1.physics.shape.width",
-            "height": "box1.physics.shape.height",
+            "width": "{{box1.physics.shape.width}}",
+            "height": "{{box1.physics.shape.height}}",
             "depth": 4,
-            "position": "box1.physics.body.position",
+            "position": "{{box1.physics.body.position}}",
             "castShadow": true,
             "receiveShadow": true,
             "material": {

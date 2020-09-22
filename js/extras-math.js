@@ -1,3 +1,9 @@
+if(!Math.randRange) {
+    Math.randRange = function(min, max) {
+        return (Math.random() * (max - min)) + min;
+    };
+}
+
 function dampeningForce(t, v) {
     return {
         x: (v.x * Math.sin(-t) + v.y * Math.cos(-t)) * -Math.sin(t),

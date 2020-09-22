@@ -22,7 +22,7 @@ import {
     //Face3,
     //ShapeUtils
 } from '/node_modules/three/build/three.module.js';
-import {OBJLoader} from '/node_modules/three/examples/jsm/loaders/OBJLoader.js';
+//import {OBJLoader} from '/node_modules/three/examples/jsm/loaders/OBJLoader.js';
 import {
     Box2D,
     b2Vec2,
@@ -38,13 +38,11 @@ import {
 } from './box2d/Box2D.js';
 
 import {KeyPress} from './KeyPress.js';
-import {dampeningForce} from './math-extras.js';
+import {dampeningForce} from './extras-math.js';
 import {Mouse} from './Mouse.js';
 import {compileObject} from './extras-eval.js';
+import {getJSON} from './extras-xhttp.js';
 
-Math.randRange = function(min, max) {
-    return (Math.random() * (max - min)) + min;
-};
 const DO_SLEEP = true,
     //HALF_PI = Math.PI/2;
     FIXED_TIMESTEP = 1/60, //1s/60 frames
@@ -57,7 +55,7 @@ const gravity = new b2Vec2(0.0, 0.0),
     world = new b2World(gravity, DO_SLEEP),
     renderer = new WebGLRenderer(),
     //loader = new TDSLoader(),
-    loader = new OBJLoader(),
+    //loader = new OBJLoader(),
     scene = new Scene(),
     camera = new PerspectiveCamera(45, 1, 1, 100000),
     mainLight = new PointLight(0XFFFFFF, 1.0, 500, 2),
@@ -101,6 +99,14 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     playerOne = createPlayer({x: 0, y: 0}, {width: 2, height: 1, depth: 1}, spaceshipMaterial), //new Mesh(new BoxGeometry(4, 2, 2), spaceshipMaterial),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF}));
 
+getJSON('/js/game/objects.json')
+    .then(response=> {
+        return compileObject(response.responseJSON);
+    })
+    .then(config=> {
+        debugger;
+    });
+
 balls.push(createBouncyBall(0, -4));
 scene.add(balls[balls.length-1]);
 scene.add(ceiling);
@@ -127,28 +133,28 @@ mainLight.shadow.mapSize.height = 512;
 scene.add(mainLight);
 scene.add(ambientLight);
 
-loader.load(
-    'meshes/soccer_clients.obj',
+//loader.load(
+//    'meshes/soccer_clients.obj',
 
-    function onLoad(obj) {
-        obj.scale.set(0.02, 0.02, 0.02);
+//    function onLoad(obj) {
+//        obj.scale.set(0.02, 0.02, 0.02);
 
-        obj.position.x = 0;
-        obj.position.y = 0;
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-        //soccerCleatBody = obj;
-        //scene.add(obj);
-    },
+//        obj.position.x = 0;
+//        obj.position.y = 0;
+//        obj.castShadow = true;
+//        obj.receiveShadow = true;
+//        //soccerCleatBody = obj;
+//        //scene.add(obj);
+//    },
 
-    function onProgress(xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded' );
-    },
+//    function onProgress(xhr) {
+//        console.log((xhr.loaded / xhr.total * 100) + '% loaded' );
+//    },
 
-    function onError() {
-        console.error('An error happened');
-    }
-);
+//    function onError() {
+//        console.error('An error happened');
+//    }
+//);
 
 if(window.location.search.indexOf('debug') !== -1) {
     document.body.querySelector('#console').classList.toggle('open');

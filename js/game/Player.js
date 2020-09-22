@@ -1,3 +1,4 @@
+import {createBoxPhysics, createBoxMesh} from './gameObjects.js';
 import {
     WebGLRenderer,
     Scene,
@@ -51,51 +52,16 @@ class Player extends GameObject{
         this.init(options);
     }
 
-    createPhysics(world, options) {
-        let shape = new b2PolygonShape(),
-            fixtureDef = new b2FixtureDef(),
-            bodyDef = new b2BodyDef(),
-            body;
-
-        shape.SetAsOrientedBox(options.width, options.height, {x: 0, y: 0}, 0);
-        fixtureDef.shape = shape;
-        fixtureDef.density = 1;
-        fixtureDef.friction = 0.5;
-        fixtureDef.restitution = 0.5;
-        bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
-        bodyDef.position = options.pos || {x: 0, y: 0};
-        bodyDef.angle = options.angle || 0.0;
-        bodyDef.linearDamping = options.linearDamping;
-        //bodyDef.angularDamping = options.playerAngularForce/100;
-        body = world.CreateBody(bodyDef);
-        body.CreateFixture(fixtureDef);
-        body.SetFixedRotation(options.fixedRotation || true);
-        body.lastFired = performance.now();
-        body.lastBurst = performance.now();
-
-        this.physicsBody = body;
-        return body;
-    }
-
-    createMesh(options) {
-        let spaceshipMaterial = new MeshStandardMaterial({
-            'map':       new TextureLoader().load('textures/spaceships/arrow_thing.png'),
-            'roughness': 0.8
-        }),
-        player  = new Mesh(new BoxGeometry(dim.width*2, dim.height*2, dim.depth*2 || 1), spaceshipMaterial);
-
-        player.position.x = this.physicsBody.GetPosition().x;
-        player.position.y = -this.physicsBody.GetPosition().y;
-        player.castShadow = true;
-        player.receiveShadow = true;
-
-        this.mesh = player;
-        return player;
-    }
-
     bindKeys(keyBindings) {}
     bindMouse(mouseBindings) {}
     update() {}
+
+    createPhysics(/*world, options*/) {
+        return createBoxPhysics.apply(this, arguments);
+    }
+    createMesh(/*scene, options*/) {
+        return createBoxMesh.apply(this, arguments);
+    }
 }
 
 export {Player};

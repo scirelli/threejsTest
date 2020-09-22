@@ -2,6 +2,17 @@ function looseJsonParse(objStr, scopeName, scope) {
     return Function(`"use strict";return (function(${scopeName || 'none'}){ return (${objStr}); })`)()(scope);
 }
 
+function evalExp(str, scopeName, scope) {
+    let regex = /{{([^{}]*)}}/,
+        matches = regex.exec(str);
+
+    if(matches) {
+        return looseJsonParse(matches[1], scopeName, scope);
+    }
+
+    return str;
+}
+
 if( !String.prototype.evalExp )
     String.prototype.evalExp = function(scopeName, scope) {
         return this.replace(/{{([^{}]*)}}/g, function(match, matchGroup) {
@@ -25,11 +36,13 @@ function compileObject(obj) {
         }
 
         if(typeof(subject) === 'string') {
-            return looseJsonParse(subject, scopeName, obj[scopeName]);
+            return evalExp(subject, scopeName, obj[scopeName]);
         }
 
         return subject;
     }
+
+    return obj;
 }
 
 export {looseJsonParse, compileObject};
