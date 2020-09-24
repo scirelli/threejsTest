@@ -11,8 +11,6 @@ class GameObject{
         this.mouse = new Mouse(document.body);
     }
 
-    bindKeys() {}
-    bindMouse() {}
     update() {}
 
     getMesh() {

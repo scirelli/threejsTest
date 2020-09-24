@@ -65,10 +65,11 @@ class Player extends GameObject{
         let bindings = [];
 
         for(let action in keyBindings) {
-            let key = keyBindings[action],
+            let keys = [].concat(keyBindings[action]),
                 handler = Player.actions[action] || (()=>{});
 
-            bindings.push(['onKey', key, handler.bind(this)]);
+            handler = handler.bind(this);
+            bindings = bindings.concat(keys.map(key=>['onKey', key, handler]));
         }
 
         this.keyBindings = KeyPress.bindKeys(bindings);
@@ -79,8 +80,9 @@ class Player extends GameObject{
     bindMouse(canvas, mouseBindings) {
         this.mouse = new Mouse(canvas)
             .setup();
-        for(let b in mouseBindings) {
-            this.mouse.on(mouseBindings[b], Player.actions[b].bind(this));
+        for(let action in mouseBindings) {
+            let evnt = mouseBindings[action];
+            this.mouse.on(evnt, Player.actions[action].bind(this));
         }
     }
 
@@ -207,6 +209,20 @@ Player.actions = {
 
         physics.SetAngle(physics.GetAngle() + (evnt.movementX)*0.01);
         physics.SetAngularVelocity(0);
+    },
+    'mouse-dash-forward': function() {
+        if(performance.now() - this.lastBurst > (2.0*1000)) {
+            let angle = this.physicsBody.GetAngle();
+            this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*this.playerForce*this.boostMultipier, Math.sin(angle)*this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
+            this.lastBurst = performance.now();
+        }
+    },
+    'mouse-dash-backward': function() {
+        if(performance.now() - this.lastBurst > (2.0*1000)) {
+            let angle = this.physicsBody.GetAngle();
+            this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*-this.playerForce*this.boostMultipier, Math.sin(angle)*-this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
+            this.lastBurst = performance.now();
+        }
     }
 };
 

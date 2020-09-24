@@ -12,22 +12,19 @@ import {
     MeshBasicMaterial,
     BoxGeometry,
     OctahedronGeometry,
-    Raycaster,
     PCFSoftShadowMap,
-    RepeatWrapping,
     Vector2
 } from '/node_modules/three/build/three.module.js';
 import {
     Box2D,
     b2Vec2,
     b2World,
-    b2CircleShape,
-    b2Body,
     b2FixtureDef,
     b2BodyDef,
     b2PolygonShape
 } from './box2d/Box2D.js';
 import {Player} from './game/Player.js';
+import {SoccerBall} from './game/SoccerBall.js';
 import {KeyPress} from './KeyPress.js';
 import {compileObject} from './extras-eval.js';
 import {getJSON} from './extras-xhttp.js';
@@ -51,9 +48,7 @@ const gravity = new b2Vec2(0.0, 0.0),
     ambientLight = new AmbientLight(0xF0F0F0, 0.5),
 
     container = document.body.querySelector('#main-container'),
-    debugOutput = document.body.querySelector('#console textarea'),
-
-    rayCaster = new Raycaster();
+    debugOutput = document.body.querySelector('#console textarea');
 
 let canvas,
     keyPress = null,
@@ -71,8 +66,7 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
-    gameObjects = [],
-    balls = [];
+    gameObjects = [];
 
 getJSON('/js/game/objects.json')
     .then(response=> {
@@ -88,14 +82,19 @@ getJSON('/js/game/objects.json')
                     o.bindKeys(config[obj].keyBindings);
                     o.bindMouse(canvas, config[obj].mouseBindings);
 
-                    gameObjects.push(o);
-                    scene.add(o.getMesh());
-
-                    if(config[obj].cameraFocus) {
-                        player = o;
-                    }
-
                     break;
+                case 'SoccerBall':
+                    o = new SoccerBall(config[obj], world, scene);
+                    break;
+            }
+
+            if(o) {
+                gameObjects.push(o);
+                scene.add(o.getMesh());
+
+                if(config[obj].cameraFocus) {
+                    player = o;
+                }
             }
         }
     })
@@ -103,8 +102,6 @@ getJSON('/js/game/objects.json')
         animate();
     });
 
-balls.push(createBouncyBall(0, -4));
-scene.add(balls[balls.length-1]);
 scene.add(ceiling);
 scene.add(floor);
 scene.add(leftWall);
@@ -174,30 +171,6 @@ keyPress = KeyPress.bindKeys([
 ]);
 
 window.addEventListener('resize', resizeCanvas);
-canvas.addEventListener('click', (evt)=> {
-    evt.preventDefault();
-
-    let mousePosition = new Vector2();
-
-    mousePosition.x = ((evt.clientX - canvas.offsetLeft) / canvas.width) * 2 - 1;
-    mousePosition.y = -((evt.clientY - canvas.offsetTop) / canvas.height) * 2 + 1;
-    rayCaster.setFromCamera(mousePosition, camera);
-    let intersections = rayCaster.intersectObjects(scene.children, true),
-        obj = intersections[0];
-
-    if(obj) {
-        let mag = Math.sqrt(obj.point.x*obj.point.x + obj.point.y*obj.point.y),
-            uv = {x: obj.point.x/mag, y: obj.point.y/mag},
-            f = 50;
-
-        obj.object.physics.ApplyImpulse(
-            new b2Vec2(uv.x*-f, uv.y*f),
-            obj.object.physics.GetWorldCenter()
-        );
-    }else {
-        balls.push(createBouncyBall(rayCaster.ray.x, rayCaster.ray.y));
-    }
-});
 
 function animate() {
     dt = performance.now()*0.001 - dt;
@@ -256,13 +229,6 @@ function resetSmoothStates() {
 }
 
 function draw() {
-    balls.forEach((b)=> {
-        let pos = b.physics.GetPosition(),
-            angle = b.physics.GetAngle();
-        b.position.x = pos.x;
-        b.position.y = -pos.y;
-        b.rotation.z = -angle;
-    });
     gameObjects.forEach(o=>o.update());
 
     let pos = player.physicsBody.GetPosition();
@@ -291,59 +257,6 @@ function resizeCanvas() {
 
 function updateCameraPosition() {
     camera.position.set(translate.x, -translate.y, 2*cameraMaximumDimension/scale);
-}
-
-function createBouncyBall(x=0, y=0, impulseForce, initVel) {
-    let mesh =     createBallMesh(x, y),
-        physics = createBallPhysics(x, y, impulseForce, initVel);
-
-    mesh.physics = physics;
-    return mesh;
-}
-
-function createBallMesh(x=0, y=0) {
-    let geometry = new OctahedronGeometry(4, 2),
-        texture = new TextureLoader().load('textures/checker/redwhite.jpg', function(texture) {
-            texture.wrapS = texture.wrapT = RepeatWrapping;
-            texture.offset.set(0, 0);
-            texture.repeat.set(4, 4);
-        }),
-        material = new MeshStandardMaterial({
-            'map':       texture,
-            'roughness': 0.8
-        }),
-        //ball = soccerCleatBody.clone();
-        ball = new Mesh(geometry, material);
-
-    ball.material = material;
-    ball.castShadow = true;
-    ball.receiveShadow = true;
-    ball.position.set(x, y, 0);
-    scene.add(ball);
-    return ball;
-}
-
-function createBallPhysics(x=0, y=0, impulseForce, initVel) {
-    let circleShape = new b2CircleShape(4),
-        circleFixtureDef = new b2FixtureDef(),
-        circleBdDef = new b2BodyDef();
-
-    circleFixtureDef.shape = circleShape;
-    circleFixtureDef.density = 0.1;
-    circleFixtureDef.friction = Math.randRange(0.5, 1);
-    circleFixtureDef.restitution = Math.randRange(0.0, 1.0);
-
-    circleBdDef.type = b2Body.b2_dynamicBody;
-    circleBdDef.position = {x: x, y: y};
-    let ballbody = world.CreateBody(circleBdDef);
-    ballbody.CreateFixture(circleFixtureDef);
-    if(initVel) {
-        ballbody.SetLinearVelocity(initVel);
-    }
-    if(impulseForce) {
-        ballbody.ApplyImpulse(impulseForce, ballbody.GetWorldCenter());
-    }
-    return ballbody;
 }
 
 function createWall(pos, dim) {

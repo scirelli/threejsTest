@@ -7,15 +7,17 @@
             "backward": "KeyS",
             "strafe-right": "KeyD",
             "strafe-left": "KeyA",
-            "rotate-cw": "KeyL",
-            "rotate-cc": "KeyJ",
+            "rotate-cw": ["KeyL", "KeyE"],
+            "rotate-cc": ["KeyJ", "KeyQ"],
             "dash-forward": "KeyI",
             "dash-backward": "KeyK",
             "fire": "Space",
             "puke": "KeyP"
         },
         "mouseBindings": {
-            "mouse-rotation": "mousemove"
+            "mouse-rotation": "mousemove",
+            "mouse-dash-forward": "0",
+            "mouse-dash-backward": "2"
         },
         "physics": {
             "force": 2802,
@@ -93,6 +95,38 @@
                 "materialType": "MeshStandardMaterial",
                 "loaderType": "TextureLoader",
                 "texturePath": "textures/spaceships/arrow_thing.png",
+                "roughness": 0.8
+            }
+        }
+    },
+
+    "SoccerBall": {
+        "type": "SoccerBall",
+        "physics": {
+            "shape": {
+                "radius": 4
+            },
+            "fixture": {
+                "density": 0.1,
+                "friction": 0.5,
+                "restitution": 0.8
+            },
+            "body":{
+                "isDynamic": true,
+                "position": {"x": 0, "y": -4},
+                "angle": 0
+            }
+        },
+        "mesh": {
+            "radius": "{{SoccerBall.physics.shape.radius}}",
+            "detail": 2,
+            "position": "{{SoccerBall.physics.body.position}}",
+            "castShadow": true,
+            "receiveShadow": true,
+            "material": {
+                "materialType": "MeshStandardMaterial",
+                "loaderType": "TextureLoader",
+                "texturePath": "textures/checker/redwhite.jpg",
                 "roughness": 0.8
             }
         }
