@@ -68,7 +68,7 @@ const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
     gameObjects = [];
 
-getJSON('/js/game/objects.json')
+getJSON('./js/game/objects.json')
     .then(response=> {
         return compileObject(response.responseJSON);
     })
