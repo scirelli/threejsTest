@@ -197,9 +197,10 @@ function animate() {
 }
 
 function singleStep(dt) {
-    keyPress.processKeys(dt);
+    keyPress.processKeys({dt: dt});
     gameObjects.forEach(o=> {
-        o.keyBindings.processKeys(dt);
+        o.keyBindings.processKeys({dt: dt});
+        o.step(dt);
     });
     world.Step(dt, 1);
 }

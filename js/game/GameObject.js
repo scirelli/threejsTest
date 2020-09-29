@@ -12,6 +12,7 @@ class GameObject{
     }
 
     update() {}
+    step() {}
 
     getMesh() {
         return this.mesh;

@@ -21,7 +21,7 @@
         },
         "physics": {
             "force": 2802,
-            "angularForce": 1,
+            "angularForce": 10,
             "dampeningForceScaler": 0.1,
             "boostMultipier": 2.5,
             "strafeMultipier": 1,
@@ -41,8 +41,8 @@
                 "position": {"x": 0, "y": 0},
                 "angle": 0,
                 "linearDamping": "{{playerOne.physics.force/800}}",
-                "angularDamping": 0,
-                "fixedRotation": true
+                "angularDamping": 10,
+                "fixedRotation": false
             }
         },
         "mesh": {

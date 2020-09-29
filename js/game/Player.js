@@ -44,14 +44,16 @@ class Player extends GameObject{
         super(options, world, scene);
 
         this.playerForce = 2802;
-        this.playerAngularForce = 400/400;
+        this.playerAngularForce = 200;
         this.dampeningForceScaler = 0.1;
+        this.strafeMultipier = 1;
         this.linearDamping = this.playerForce/800;
         this.boostMultipier = 2.5;
         this.playerStrafeMultipier = 1;
         this.lastFired = performance.now();
         this.lastBurst = performance.now();
         this.bullets = [];
+        this.angleToSeek = 0;
 
         this.init(options);
     }
@@ -59,6 +61,12 @@ class Player extends GameObject{
     init(options) {
         this.physicsBody = Player.createPhysics(this.world, options.physics);
         this.mesh = Player.createMesh(options.mesh);
+        this.angleToSeek = this.physicsBody.GetAngle();
+        this.playerForce = options.physics.force || this.playerForce;
+        this.playerAngularForce = options.physics.angularForce || this.playerAngularForce;
+        this.dampeningForceScaler = options.physics.dampeningForceScaler;
+        this.boostMultipier = options.physics.boostMultipier;
+        this.playerStrafeMultipier = options.physics.strafeMultipier || this.playerStrafeMultipier;
     }
 
     bindKeys(keyBindings) {
@@ -86,6 +94,10 @@ class Player extends GameObject{
         }
     }
 
+    step(dt) {
+        this.seekAnAngle(dt);
+    }
+
     update() {
         let pos = this.physicsBody.GetPosition(),
             angle = this.physicsBody.GetAngle();
@@ -103,6 +115,19 @@ class Player extends GameObject{
         });
     }
 
+    // |-------------------|21
+    // |------| 8
+    //         |-----------|13
+    seekAnAngle() {
+        let angle = this.physicsBody.GetAngle(),
+            da = this.angleToSeek - angle;
+
+        this.physicsBody.ApplyTorque(da*10000);
+        if(da < -0.001 || da > 0.001) {
+            console.debug(`AngleToSeek: ${this.angleToSeek};\n Angle: ${angle};\n da: ${da}`);
+        }
+    }
+
     static createPhysics(/*world, options*/) {
         return createBoxPhysics.apply(this, arguments);
     }
@@ -112,13 +137,13 @@ class Player extends GameObject{
 }
 
 Player.actions = {
-    'forward': function forward(state, code, keyPress) {
-        if(state) {
+    'forward': function forward(evt) {
+        if(evt.state) {
             let physics = this.physicsBody,
                 angle = physics.GetAngle(),
                 f = this.playerForce;
 
-            if(keyPress.getKeyState('ShiftLeft')) {
+            if(evt.keyPress.getKeyState('ShiftLeft')) {
                 f *= this.boostMultipier;
             }
 
@@ -126,13 +151,13 @@ Player.actions = {
             physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
         }
     },
-    'backward': function backward(state, code, keyPress) {
-        if(state) {
+    'backward': function backward(evt) {
+        if(evt.state) {
             let physics = this.physicsBody,
                 angle = physics.GetAngle(),
                 f = -this.playerForce;
 
-            if(keyPress.getKeyState('ShiftLeft')) {
+            if(evt.keyPress.getKeyState('ShiftLeft')) {
                 f *= this.boostMultipier;
             }
 
@@ -140,40 +165,46 @@ Player.actions = {
             physics.ApplyImpulse(MulFV(-this.dampeningForceScaler, dampeningForce(physics.GetAngle(), physics.GetLinearVelocity())), physics.GetWorldCenter());
         }
     },
-    'strafe-right': function strafeRight(state) {
-        if(state) {
+    'strafe-right': function strafeRight(evt) {
+        if(evt.state) {
             let physics = this.physicsBody,
                 angle = physics.GetAngle();
 
             physics.ApplyForce(MulFV(this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
         }
     },
-    'rotate-cw': function rotateCW(state) {
-        if(state) {
-            let pbox = this.physicsBody;
+    'rotate-cw': function rotateCW(evt) {
+        if(evt.state) {
+            let pbox = this.physicsBody,
+                angle = pbox.GetAngle();
 
-            pbox.SetAngle(pbox.GetAngle() + 1*this.playerAngularForce*0.1);
-            pbox.SetAngularVelocity(0);
+            //pbox.SetAngle(angle + 1 * this.playerAngularForce * evt.dt);
+            // this.angleToSeek = pbox.GetAngle();
+            this.angleToSeek = angle + 1 * this.playerAngularForce * evt.dt;
+            //pbox.SetAngularVelocity(0);
         }
     },
-    'strafe-left': function strafeLeft(state) {
-        if(state) {
+    'rotate-cc': function rotateCC(evt) {
+        if(evt.state) {
+            let pbox = this.physicsBody,
+                angle = pbox.GetAngle();
+
+            // pbox.SetAngle(angle + -1 * this.playerAngularForce * evt.dt);
+            // this.angleToSeek = pbox.GetAngle();
+            this.angleToSeek = angle + -1 * this.playerAngularForce * evt.dt;
+            //pbox.SetAngularVelocity(0);
+        }
+    },
+    'strafe-left': function strafeLeft(evt) {
+        if(evt.state) {
             let physics = this.physicsBody,
                 angle = physics.GetAngle();
 
             physics.ApplyForce(MulFV(-this.playerStrafeMultipier, new b2Vec2(-Math.sin(angle)*this.playerForce, Math.cos(angle)*this.playerForce)), physics.GetWorldCenter());
         }
     },
-    'rotate-cc': function rotateCC(state) {
-        if(state) {
-            let pbox = this.physicsBody;
-
-            pbox.SetAngle(pbox.GetAngle() + -1*this.playerAngularForce*0.1);
-            pbox.SetAngularVelocity(0);
-        }
-    },
-    'dash-forward': function dashForward(state) {
-        if(state) {
+    'dash-forward': function dashForward(evt) {
+        if(evt.state) {
             if(performance.now() - this.lastBurst > (2.0*1000)) {
                 let angle = this.physicsBody.GetAngle();
                 this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*this.playerForce*this.boostMultipier, Math.sin(angle)*this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
@@ -181,8 +212,8 @@ Player.actions = {
             }
         }
     },
-    'dash-backward': function dashBackward(state) {
-        if(state) {
+    'dash-backward': function dashBackward(evt) {
+        if(evt.state) {
             if(performance.now() - this.lastBurst > (2.0*1000)) {
                 let angle = this.physicsBody.GetAngle();
                 this.physicsBody.ApplyImpulse(new b2Vec2(Math.cos(angle)*-this.playerForce*this.boostMultipier, Math.sin(angle)*-this.playerForce*this.boostMultipier), this.physicsBody.GetWorldCenter());
@@ -190,15 +221,15 @@ Player.actions = {
             }
         }
     },
-    'fire': function fire(state) {
-        if(state) {
+    'fire': function fire(evt) {
+        if(evt.state) {
             if(performance.now() - this.lastFired > (0.6*1000)) {
                 fireBullet.call(this);
             }
         }
     },
-    'puke': function puke(state) {
-        if(state) {
+    'puke': function puke(evt) {
+        if(evt.state) {
             if(performance.now() - this.lastFired > (0.0*1000)) {
                 fireBullet.call(this);
             }

@@ -15,10 +15,16 @@ class KeyPress{
         oElm.addEventListener('keyup', this._keyup);
     }
 
-    processKeys() {
+    processKeys(evt) {
+        evt = evt || {};
+
         for(let key in this.oListeners.onKey) {
             for(let listener of (this.oListeners.onKey[key] || [])) {
-                listener(this.oStates[key], key, this);
+                listener(Object.assign({
+                    state:    this.oStates[key],
+                    key:      key,
+                    keyPress: this
+                }, evt));
             }
         }
     }
