@@ -41,7 +41,7 @@
                 "position": {"x": 0, "y": 0},
                 "angle": 0,
                 "linearDamping": "{{playerOne.physics.force/800}}",
-                "angularDamping": 10,
+                "angularDamping": 0,
                 "fixedRotation": false
             }
         },

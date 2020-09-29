@@ -53,7 +53,7 @@ class Player extends GameObject{
         this.lastFired = performance.now();
         this.lastBurst = performance.now();
         this.bullets = [];
-        this.angleToSeek = 0;
+        this.desiredAngle = 0;
 
         this.init(options);
     }
@@ -61,7 +61,7 @@ class Player extends GameObject{
     init(options) {
         this.physicsBody = Player.createPhysics(this.world, options.physics);
         this.mesh = Player.createMesh(options.mesh);
-        this.angleToSeek = this.physicsBody.GetAngle();
+        this.desiredAngle = this.physicsBody.GetAngle();
         this.playerForce = options.physics.force || this.playerForce;
         this.playerAngularForce = options.physics.angularForce || this.playerAngularForce;
         this.dampeningForceScaler = options.physics.dampeningForceScaler;
@@ -118,13 +118,22 @@ class Player extends GameObject{
     // |-------------------|21
     // |------| 8
     //         |-----------|13
-    seekAnAngle() {
-        let angle = this.physicsBody.GetAngle(),
-            da = this.angleToSeek - angle;
+    // Torque = N-m
+    // N-m: It is equal to the force that would give a mass of one kilogram an acceleration of one meter per second per second
+    // One newton-metre of torque is equivalent to one joule per radian.[4]
+    // 1J = 1 kg*m^2/s^2 = 1 N-m
+    seekAnAngle(frameTime) {
+        let body = this.physicsBody,
+            currentAngle = body.GetAngle(),
+            desiredAngle = this.desiredAngle,
+            deltaAngle = desiredAngle - currentAngle,
+            currentAngularVel = body.GetAngularVelocity(), //radians/second
+            vel = deltaAngle/frameTime,
+            torque = (vel - currentAngularVel) / frameTime;
 
-        this.physicsBody.ApplyTorque(da*10000);
-        if(da < -0.001 || da > 0.001) {
-            console.debug(`AngleToSeek: ${this.angleToSeek};\n Angle: ${angle};\n da: ${da}`);
+        this.physicsBody.ApplyTorque(torque);
+        if(torque !== 0) {
+            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nda: ${deltaAngle}\nVel: ${currentAngularVel}\nnVel: ${vel}\n𝜏:${torque}`);
         }
     }
 
@@ -179,8 +188,8 @@ Player.actions = {
                 angle = pbox.GetAngle();
 
             //pbox.SetAngle(angle + 1 * this.playerAngularForce * evt.dt);
-            // this.angleToSeek = pbox.GetAngle();
-            this.angleToSeek = angle + 1 * this.playerAngularForce * evt.dt;
+            // this.desiredAngle = pbox.GetAngle();
+            this.desiredAngle = angle + (4*Math.PI * evt.dt);
             //pbox.SetAngularVelocity(0);
         }
     },
@@ -190,8 +199,8 @@ Player.actions = {
                 angle = pbox.GetAngle();
 
             // pbox.SetAngle(angle + -1 * this.playerAngularForce * evt.dt);
-            // this.angleToSeek = pbox.GetAngle();
-            this.angleToSeek = angle + -1 * this.playerAngularForce * evt.dt;
+            // this.desiredAngle = pbox.GetAngle();
+            this.desiredAngle = angle - (4*Math.PI * evt.dt);
             //pbox.SetAngularVelocity(0);
         }
     },
