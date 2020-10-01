@@ -54,6 +54,7 @@ class Player extends GameObject{
         this.lastBurst = performance.now();
         this.bullets = [];
         this.desiredAngle = 0;
+        this.turnAmount = 4*Math.PI;
 
         this.init(options);
     }
@@ -67,6 +68,7 @@ class Player extends GameObject{
         this.dampeningForceScaler = options.physics.dampeningForceScaler;
         this.boostMultipier = options.physics.boostMultipier;
         this.playerStrafeMultipier = options.physics.strafeMultipier || this.playerStrafeMultipier;
+        this.turnAmount = options.physics.turnAmount || this.turnAmount;
     }
 
     bindKeys(keyBindings) {
@@ -133,11 +135,12 @@ class Player extends GameObject{
             desiredAngle = this.desiredAngle,
             deltaAngle = desiredAngle - currentAngle,
             currentAngularVel = body.GetAngularVelocity(), //radians/second
-            a = (2*(deltaAngle - currentAngularVel * frameTime))/(frameTime * frameTime);
+            a = (2*(deltaAngle - currentAngularVel * frameTime))/(frameTime * frameTime),
+            torque = a*body.GetMass();
 
-        this.physicsBody.ApplyTorque(a*body.GetMass());
+        this.physicsBody.ApplyTorque(torque);
         if(deltaAngle !== 0) {
-            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${a}`);
+            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${torque}`);
         }
     }
 
@@ -188,26 +191,16 @@ Player.actions = {
     },
     'rotate-cw': function rotateCW(evt) {
         if(evt.state) {
-            let pbox = this.physicsBody,
-                angle = pbox.GetAngle();
+            let angle = this.physicsBody.GetAngle();
 
-            //pbox.SetAngle(angle + 1 * this.playerAngularForce * evt.dt);
-            // this.desiredAngle = pbox.GetAngle();
-            this.desiredAngle = angle + (4*Math.PI * evt.dt);
-            pbox.ApplyTorque(1000);
-            //pbox.SetAngularVelocity(0);
+            this.desiredAngle = angle + (this.turnAmount * evt.dt);
         }
     },
     'rotate-cc': function rotateCC(evt) {
         if(evt.state) {
-            let pbox = this.physicsBody,
-                angle = pbox.GetAngle();
+            let angle = this.physicsBody.GetAngle();
 
-            // pbox.SetAngle(angle + -1 * this.playerAngularForce * evt.dt);
-            // this.desiredAngle = pbox.GetAngle();
-            this.desiredAngle = angle - (4*Math.PI * evt.dt);
-            pbox.ApplyTorque(-1000);
-            //pbox.SetAngularVelocity(0);
+            this.desiredAngle = angle - (this.turnAmount * evt.dt);
         }
     },
     'strafe-left': function strafeLeft(evt) {
