@@ -135,7 +135,7 @@ class Player extends GameObject{
             currentAngularVel = body.GetAngularVelocity(), //radians/second
             a = (2*(deltaAngle - currentAngularVel * frameTime))/(frameTime * frameTime);
 
-        this.physicsBody.ApplyTorque(a);
+        this.physicsBody.ApplyTorque(a*body.GetMass());
         if(deltaAngle !== 0) {
             console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${a}`);
         }
