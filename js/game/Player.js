@@ -122,18 +122,22 @@ class Player extends GameObject{
     // N-m: It is equal to the force that would give a mass of one kilogram an acceleration of one meter per second per second
     // One newton-metre of torque is equivalent to one joule per radian.[4]
     // 1J = 1 kg*m^2/s^2 = 1 N-m
+    // v = v0 + at
+    // (v - v0)/t = a
+    //
+    // dx = v0*t + 1/2(at^2)
+    // (2*(dx - v0*t))/t^2 = a
     seekAnAngle(frameTime) {
         let body = this.physicsBody,
             currentAngle = body.GetAngle(),
             desiredAngle = this.desiredAngle,
             deltaAngle = desiredAngle - currentAngle,
             currentAngularVel = body.GetAngularVelocity(), //radians/second
-            vel = deltaAngle/frameTime,
-            torque = (vel - currentAngularVel) / frameTime;
+            a = (2*(deltaAngle - currentAngularVel * frameTime))/(frameTime * frameTime);
 
-        this.physicsBody.ApplyTorque(torque);
-        if(torque !== 0) {
-            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nda: ${deltaAngle}\nVel: ${currentAngularVel}\nnVel: ${vel}\n𝜏:${torque}`);
+        this.physicsBody.ApplyTorque(a);
+        if(deltaAngle !== 0) {
+            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${a}`);
         }
     }
 
@@ -190,6 +194,7 @@ Player.actions = {
             //pbox.SetAngle(angle + 1 * this.playerAngularForce * evt.dt);
             // this.desiredAngle = pbox.GetAngle();
             this.desiredAngle = angle + (4*Math.PI * evt.dt);
+            pbox.ApplyTorque(1000);
             //pbox.SetAngularVelocity(0);
         }
     },
@@ -201,6 +206,7 @@ Player.actions = {
             // pbox.SetAngle(angle + -1 * this.playerAngularForce * evt.dt);
             // this.desiredAngle = pbox.GetAngle();
             this.desiredAngle = angle - (4*Math.PI * evt.dt);
+            pbox.ApplyTorque(-1000);
             //pbox.SetAngularVelocity(0);
         }
     },
