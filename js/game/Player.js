@@ -135,12 +135,11 @@ class Player extends GameObject{
             desiredAngle = this.desiredAngle,
             deltaAngle = desiredAngle - currentAngle,
             currentAngularVel = body.GetAngularVelocity(), //radians/second
-            a = (2*(deltaAngle - currentAngularVel * frameTime))/(frameTime * frameTime),
-            torque = a*body.GetMass();
+            torque = (deltaAngle / 1) - currentAngularVel;
 
-        this.physicsBody.ApplyTorque(torque);
+        body.ApplyTorque(torque);
         if(deltaAngle !== 0) {
-            console.debug(`DesiredAngle: ${desiredAngle};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${torque}`);
+            console.debug(`DesiredAngle: ${desiredAngle};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\nt: ${torque}`);
         }
     }
 
@@ -193,14 +192,14 @@ Player.actions = {
         if(evt.state) {
             let angle = this.physicsBody.GetAngle();
 
-            this.desiredAngle = angle + (this.turnAmount * evt.dt);
+            this.desiredAngle = angle + 1;
         }
     },
     'rotate-cc': function rotateCC(evt) {
         if(evt.state) {
             let angle = this.physicsBody.GetAngle();
 
-            this.desiredAngle = angle - (this.turnAmount * evt.dt);
+            this.desiredAngle = angle - 1;
         }
     },
     'strafe-left': function strafeLeft(evt) {
