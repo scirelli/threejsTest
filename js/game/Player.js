@@ -140,7 +140,7 @@ class Player extends GameObject{
 
         this.physicsBody.ApplyTorque(torque);
         if(deltaAngle !== 0) {
-            console.debug(`DesiredAngle: ${desiredAngle*57.2958};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${torque}`);
+            console.debug(`DesiredAngle: ${desiredAngle};\nAngle: ${currentAngle};\nVel: ${currentAngularVel}\n𝜏: ${torque}`);
         }
     }
 
