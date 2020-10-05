@@ -193,14 +193,14 @@ Player.actions = {
         if(evt.state) {
             let angle = this.physicsBody.GetAngle();
 
-            this.desiredAngle = angle + (this.turnAmount * evt.dt);
+            this.desiredAngle = angle + this.turnAmount;
         }
     },
     'rotate-cc': function rotateCC(evt) {
         if(evt.state) {
             let angle = this.physicsBody.GetAngle();
 
-            this.desiredAngle = angle - (this.turnAmount * evt.dt);
+            this.desiredAngle = angle - this.turnAmount;
         }
     },
     'strafe-left': function strafeLeft(evt) {

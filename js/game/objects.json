@@ -22,7 +22,7 @@
         "physics": {
             "force": 2802,
             "angularForce": 10,
-            "turnAmount": "{{4*Math.PI}}",
+            "turnAmount": "{{0.0174533 * 8}}",
             "dampeningForceScaler": 0.1,
             "boostMultipier": 2.5,
             "strafeMultipier": 1,
