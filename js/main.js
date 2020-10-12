@@ -61,10 +61,11 @@ let canvas,
     dt = performance.now()*0.001,
     player;
 
-const floor     = createWall({x: 0*2, y: 80}, {width: 110, height: 0.5, depth: 6}),
-    ceiling   = createWall({x: 0*2, y: -80}, {width: 110, height: 0.5, depth: 6}),
-    leftWall  = createWall({x: -109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
-    rightWall = createWall({x: 109.728, y: 0}, {width: 0.5, height: 80, depth: 6}),
+const floor   = createWall({x: 0*2, y: 90}, {width: 120, height: 0.5, depth: 6}),
+    ceiling   = createWall({x: 0*2, y: -90}, {width: 120, height: 0.5, depth: 6}),
+    leftWall  = createWall({x: -119.728, y: 0}, {width: 0.5, height: 90, depth: 6}),
+    rightWall = createWall({x: 119.728, y: 0}, {width: 0.5, height: 90, depth: 6}),
+    leftGoal  = createGoal({x: 114.728, y: 0}),
     lightBall = new Mesh(new OctahedronGeometry(0.5, 2), new MeshBasicMaterial({color: 0xFFFFFF})),
     gameObjects = [];
 
@@ -299,4 +300,18 @@ function createWallPhysics(pos, dim) {
     let floorbody = world.CreateBody(floorbodyDef);
     floorbody.CreateFixture(floorfixtureDef);
     return floorbody;
+}
+
+function createGoal(pos, dim) {
+    let 
+        back = createWallPhysics(pos, {width: 0.5, height: 8, depth: 1}),
+        tp = createWallPhysics(pos, {width: 0.5, height: 2.66667, depth: 1}),
+        bot = createWallPhysics(pos, {width: 0.5, height: 2.66667, depth: 1}),
+
+        meshBack = createWallMesh({x: back.GetPosition().x, y: -back.GetPosition().y}, {width: dim.width*2, height: dim.height*2, depth: dim.depth*2}),
+        meshTp = createWallMesh({x: physics.GetPosition().x, y: -physics.GetPosition().y}, {width: dim.width*2, height: dim.height*2, depth: dim.depth*2}),
+        meshBot = createWallMesh({x: physics.GetPosition().x, y: -physics.GetPosition().y}, {width: dim.width*2, height: dim.height*2, depth: dim.depth*2});
+
+    mesh.physics = physics;
+    return mesh;
 }
