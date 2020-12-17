@@ -1,3 +1,4 @@
 node_modules/
 .apache/
 .DS_Store
+!build/node_modules/
